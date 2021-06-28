@@ -17,7 +17,8 @@ TOURNAMENT_SPREADSHEET_ID = '11Esv5ezkFE92Ymak0ece5mPrP7pK4AWUEzzx1EwTKDM'
 SIGNUP_SPREADSHEET_ID = '1hIXQZldciTIceMhnTTlBpkohDCY3z3O6gVPZPvoXq58'
 STARTING_CELL = 'A5'
 STARTING_ROW = STARTING_CELL[1:]
-TIME_CELL = 'B2'
+TIME_CELL = 'A2'
+STATS_CELL = 'I2'
 
 class Matchmaker():
     def __init__(self):
@@ -27,6 +28,7 @@ class Matchmaker():
         self.username_list = []
         self.attendee_unique_string_list = []
         self.pair_list = []
+        self.looking_for_partner = 0
         self.get_credentials()
 
         # Email lists
@@ -62,7 +64,7 @@ class Matchmaker():
         self.signup_list = []
         self.signup_unique_string_list = []
         self.auto_pair_remaining = 0
-        resp = self.get(self.get_cell_string('2','1000',sheet=''))
+        resp = self.get(self.get_cell_string('2','420',sheet=''))
         for row in resp['values']:
             d = {}
             d['email'] = row[1]
@@ -76,6 +78,7 @@ class Matchmaker():
             d['partner_username'] = row[9] if d['has_partner'] else ''
             if not d['has_partner']:
                 d['range_pref'] = list(range(self.get_rank_val(d['min_pref']),self.get_rank_val(d['max_pref'])+1))
+                self.looking_for_partner += 1
             unique_str = self.get_unique_string(d, 'signup')
             ratios = process.extract(unique_str, self.signup_unique_string_list)
             if ratios and ratios[0][1] >= 95:
@@ -183,6 +186,7 @@ class Matchmaker():
 
     def update_player_sheet(self):
         self.update_time()
+        self.update_stats()
         self.clear_all()
         self.pair_list.sort(reverse=True, key=self._sort)
         values = []
@@ -198,9 +202,14 @@ class Matchmaker():
     #------ Utility functions ------
 
     def append_player_info(self, values, player):
-        values.append(player['given_name'])
-        values.append(player['family_name'])
-        values.append(player['username_igs'])
+        if not player['anonymous']:
+            values.append(player['given_name'])
+            values.append(player['family_name'])
+            values.append(player['username_igs'])
+        else:
+            values.append('Anonymous')
+            values.append('Anonymous')
+            values.append('Anonymous')
         values.append(player['rank_short'])
 
     def get_pair_points(self, pair):
@@ -227,8 +236,15 @@ class Matchmaker():
     def update_time(self):
         now = datetime.now()
         now = now.strftime('%m/%d/%Y %H:%M:%S')
-        now += ' PDT'
+        now = 'Last Updated\n\n' + now + ' PDT'
         self.update(self.get_cell_string(TIME_CELL), [[now]])
+
+    def update_stats(self):
+        stats = 'Registered: ' + str(len(self.username_list)) + '\n'
+        stats += 'Registered but not signed up: ' + str(len(self.registered_but_not_signed_up)) + '\n'
+        stats += 'Signed up but not registered: ' + str(len(self.signed_up_but_not_registered)) + '\n'
+        stats += 'Looking for a partner: ' + str(self.looking_for_partner)
+        self.update(self.get_cell_string(STATS_CELL), [[stats]])
 
     def get_cell_string(self, a, b=None, sheet=None):
         if sheet is None:
@@ -241,7 +257,7 @@ class Matchmaker():
         return str
 
     def clear_all(self):
-        self.batch_clear(self.get_cell_string(STARTING_ROW, '1000'))
+        self.batch_clear(self.get_cell_string(STARTING_ROW, '420'))
 
     def _sort(self, p):
         return p['pair_points']
