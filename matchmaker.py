@@ -1,7 +1,8 @@
 from __future__ import print_function
-from enum import unique
+from enum import auto, unique
 import os.path
 from typing import Match
+from fuzzywuzzy.fuzz import ratio
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
@@ -16,9 +17,10 @@ SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 TOURNAMENT_SPREADSHEET_ID = '11Esv5ezkFE92Ymak0ece5mPrP7pK4AWUEzzx1EwTKDM'
 SIGNUP_SPREADSHEET_ID = '1hIXQZldciTIceMhnTTlBpkohDCY3z3O6gVPZPvoXq58'
 STARTING_CELL = 'A5'
+MISSING_LIST_CELL = 'H5'
 STARTING_ROW = STARTING_CELL[1:]
 TIME_CELL = 'A2'
-STATS_CELL = 'I2'
+STATS_CELL = 'E2'
 
 class Matchmaker():
     def __init__(self):
@@ -27,8 +29,11 @@ class Matchmaker():
         self.attendee_list = []
         self.username_list = []
         self.attendee_unique_string_list = []
+        self.attendee_aga_id_list = []
         self.pair_list = []
+        self.partner_not_registered = 0
         self.looking_for_partner = 0
+        self.debug_list = []
         self.get_credentials()
 
         # Email lists
@@ -53,17 +58,19 @@ class Matchmaker():
                         attendee['rank_val'] = self.get_rank_val(attendee['rank_short'])
                         attendee['signed_up'] = False
                         attendee['paired'] = False
+                        self.debug_list.append(attendee['given_name'])
                         self.attendee_list.append(attendee)
                         self.username_list.append(username_igs)
                         self.attendee_unique_string_list.append(self.get_unique_string(attendee, 'attendee'))
+                        self.attendee_aga_id_list.append(attendee['aga_id'])
                     else:
                         self.not_registered_for_pair_go.append(attendee['email'])
         print('Number of registered attendees: ', len(self.username_list))
-
+        print(self.attendee_aga_id_list)
         # Parse sign-ups
         self.signup_list = []
         self.signup_unique_string_list = []
-        self.auto_pair_remaining = 0
+        self.auto_pair_needed = 0
         resp = self.get(self.get_cell_string('2','420',sheet=''))
         for row in resp['values']:
             d = {}
@@ -77,7 +84,6 @@ class Matchmaker():
             d['partner_name'] = row[8] if d['has_partner'] else '' 
             d['partner_username'] = row[9] if d['has_partner'] else ''
             if not d['has_partner']:
-                d['range_pref'] = list(range(self.get_rank_val(d['min_pref']),self.get_rank_val(d['max_pref'])+1))
                 self.looking_for_partner += 1
             unique_str = self.get_unique_string(d, 'signup')
             ratios = process.extract(unique_str, self.signup_unique_string_list)
@@ -93,9 +99,16 @@ class Matchmaker():
         # Combine sign-ups with registration
         for s in self.signup_unique_string_list:
             signup_ind = self.signup_unique_string_list.index(s)
-            ratios = process.extract(s, self.attendee_unique_string_list)
-            if ratios[0][1] >= 90:
-                ind = self.attendee_unique_string_list.index(ratios[0][0])
+            
+            aga_id = self.signup_list[signup_ind]['aga_id']
+            ind = []
+            if aga_id in self.attendee_aga_id_list:
+                ind = self.attendee_aga_id_list.index(aga_id)
+            else:
+                ratios = process.extract(s, self.attendee_unique_string_list)
+                if ratios[0][1] >= 90:
+                    ind = self.attendee_unique_string_list.index(ratios[0][0])
+            if ind:
                 self.attendee_list[ind]['signup'] = self.signup_list[signup_ind]
                 self.attendee_list[ind]['signed_up'] = True
             else:
@@ -104,11 +117,11 @@ class Matchmaker():
         for p in self.attendee_list:
             if p['signed_up']:
                 if not p['signup']['has_partner']:
-                    self.auto_pair_remaining += 1
+                    self.auto_pair_needed += 1
             else:
                 self.registered_but_not_signed_up.append(p['email'])
 
-        print('Number of people needing auto pair: ', self.auto_pair_remaining, '\n')
+        print('Number of registered and signed up people needing auto pair: ', self.auto_pair_needed, '\n')
         print('Signed up but not registered: ', len(self.signed_up_but_not_registered))
         self.display_emails(self.signed_up_but_not_registered)
         print('Registered but not signed up: ', len(self.registered_but_not_signed_up))
@@ -116,6 +129,7 @@ class Matchmaker():
         print('Not registered for pair go: ', len(self.not_registered_for_pair_go))
         self.display_emails(self.not_registered_for_pair_go)
 
+        # print(self.debug_list)
     def display_emails(self, emails):
         str = ''
         for e in emails:
@@ -152,10 +166,14 @@ class Matchmaker():
                     username = p_1['username_igs']
                     partner_username = p_1['signup']['partner_username']
                     ratios = process.extract(partner_username, self.username_list)
+                    # print(partner_username)
+                    # print(ratios)
                     if ratios[0][1] >= 95:
-                        ind = self.username_list.index(partner_username)
+                        ind = self.username_list.index(ratios[0][0])
                         p_2 = self.attendee_list[ind]
                         self.add_pair_to_list(p_1, p_2, False)
+                    else:
+                        self.partner_not_registered += 1
                         
     def add_pair_to_list(self, p_1, p_2, auto_pair):
         p_1['paired'] = True
@@ -167,25 +185,48 @@ class Matchmaker():
         pair['auto_pair'] = 'Y' if auto_pair else 'N'
         pair['pair_points'] = self.get_pair_points(pair)
         self.pair_list.append(pair)
+        if auto_pair:
+            self.auto_pair_remaining -= 2
 
     def auto_match_pairs(self):
+        sum = 0
+        for p in self.attendee_list:
+            if p['signed_up'] and not p['paired']:
+                sum += 1
+        print(sum)
+
+        auto_pair_list = []
+        for p in self.attendee_list:
+            if p['signed_up'] and not p['paired'] and not p['signup']['has_partner']:
+                auto_pair_list.append(p)
+                # print(p['username_igs'] + ":" + p['rank_short'] + ':' + p['gender'] + ' ' + p['signup']['min_pref'] + ' to ' + p['signup']['max_pref'])
+        auto_pair_list.sort(reverse=True, key=lambda p:p['rank_val'])
+
         n = 0
-        while(self.auto_pair_remaining > 1 and n < 30):
-            for p_1 in self.attendee_list:
-                if p_1['signed_up'] and not p_1['paired']:
-                    if not p_1['signup']['has_partner']:
-                        
-                        # Non-male first pick
-                        if p_1['gender'] != 'm':
-                            for p_2 in self.attendee_list:
-                                if p_2['signed_up'] and not p_2['paired'] and not p_2['signup']['has_partner']:
-                                    if p_2['rank_val'] in list(range(p_1['signup']['min_pref']+n, p_1['signup']['signup']['max_pref']+1+n)):
-                                        if p_1['rank_val'] in list(range(p_2['signup']['min_pref']+n, p_2['signup']['signup']['max_pref']+1+n)):
-                                            self.add_pair_to_list(p_1, p_2)
+        self.auto_pair_remaining = self.auto_pair_needed
+        while(self.auto_pair_remaining > 1 and n < 4):
+            for p_1 in auto_pair_list:
+                if not p_1['paired']:
+                    # Non-male + male pairs
+                    if p_1['gender'] != 'm':
+                        for p_2 in auto_pair_list:
+                            if p_2['gender'] == 'm' and not p_2['paired'] and p_2['username_igs'] != p_1['username_igs']:
+                                if self.fit_pref_ranges(p_1, p_2, n):
+                                    self.add_pair_to_list(p_1, p_2, True)
+                                    break
+                    # Male + male pairs
+                    else:
+                        for p_2 in auto_pair_list:
+                            if p_2['gender'] == 'm' and not p_2['paired'] and p_2['username_igs'] != p_1['username_igs']:
+                                if self.fit_pref_ranges(p_1, p_2, n):
+                                    self.add_pair_to_list(p_1, p_2, True)
+                                    break
+
             n += 1
+            # print(self.auto_pair_remaining, n)
 
     def update_player_sheet(self):
-        self.update_time()
+        # self.update_time()
         self.update_stats()
         self.clear_all()
         self.pair_list.sort(reverse=True, key=self._sort)
@@ -198,17 +239,30 @@ class Matchmaker():
             v.append(p['auto_pair'])
             values.append(v)
         self.update(self.get_cell_string(STARTING_CELL), values)
+        self.update_missing_list()
+
 
     #------ Utility functions ------
 
+    def get_pref_range_val(self, p, n):
+        pref_range = list(range(self.get_rank_val(p['signup']['min_pref'])-n, self.get_rank_val(p['signup']['max_pref'])+1+n))
+        # print(pref_range)
+        return pref_range
+
+    def fit_pref_ranges(self, p_1, p_2, n):
+        if p_2['rank_val'] in self.get_pref_range_val(p_1, n):
+            if p_1['rank_val'] in self.get_pref_range_val(p_2, n):
+                return True
+        return False
+
     def append_player_info(self, values, player):
         if not player['anonymous']:
-            values.append(player['given_name'])
-            values.append(player['family_name'])
+            # values.append(player['given_name'])
+            # values.append(player['family_name'])
             values.append(player['username_igs'])
         else:
-            values.append('Anonymous')
-            values.append('Anonymous')
+            # values.append('Anonymous')
+            # values.append('Anonymous')
             values.append('Anonymous')
         values.append(player['rank_short'])
 
@@ -218,11 +272,12 @@ class Matchmaker():
         return float(m_rank + f_rank) / 2.0
 
     def get_rank_val(self, rank):
-        v = int(rank[:-1])
-        if rank[-1] == 'k':
-            v = -1 * v + 1
-        elif rank[-1] == 'p' or rank == 'Professional':
+        if rank[-1] == 'p' or rank == 'Professional':
             v = 10
+        else:
+            v = int(rank[:-1])
+            if rank[-1] == 'k':
+                v = -1 * v + 1
         return v
 
     def get_unique_string(self, d, case):
@@ -240,11 +295,39 @@ class Matchmaker():
         self.update(self.get_cell_string(TIME_CELL), [[now]])
 
     def update_stats(self):
+        now = datetime.now()
+        now = now.strftime('%m/%d/%Y %H:%M:%S')
+        now = 'Last Updated:\n' + now + ' PDT'
         stats = 'Registered: ' + str(len(self.username_list)) + '\n'
-        stats += 'Registered but not signed up: ' + str(len(self.registered_but_not_signed_up)) + '\n'
-        stats += 'Signed up but not registered: ' + str(len(self.signed_up_but_not_registered)) + '\n'
-        stats += 'Looking for a partner: ' + str(self.looking_for_partner)
+        # stats += 'Registered but hasn\'t filled form: ' + str(len(self.registered_but_not_signed_up)) + '\n'
+        # stats += 'Filled form but hasn\'t registered: ' + str(len(self.signed_up_but_not_registered)) + '\n'
+        # stats += 'Partner hasn\'t registered: ' + str(self.partner_not_registered) + '\n'
+        stats += 'Looking for a partner: ' + str(self.auto_pair_needed) + '\n'
+        stats += '\n'
+        stats += now
         self.update(self.get_cell_string(STATS_CELL), [[stats]])
+
+    def update_missing_list(self):
+        missing_list = []
+        for p in self.attendee_list:
+            if not p['paired']:
+                missing_list.append(p)
+        missing_list.sort(key=lambda p: p['username_igs'].lower())
+        values = []
+        for p in missing_list:
+            v = []
+            v.append(p['username_igs'])
+            if not p['signed_up']:
+                v.append('N')
+            elif p['signup']['has_partner']:
+                v.append('Y')
+                v.append('N')
+            elif not p['signup']['has_partner']:
+                v.append('Y')
+                v.append('')
+                v.append('N')
+            values.append(v)
+        self.update(self.get_cell_string(MISSING_LIST_CELL), values)
 
     def get_cell_string(self, a, b=None, sheet=None):
         if sheet is None:
@@ -292,5 +375,5 @@ class Matchmaker():
 if __name__ == '__main__':
     m = Matchmaker()
     m.match_premade_pairs()
-    # m.auto_match_pairs()
+    m.auto_match_pairs()
     m.update_player_sheet()
