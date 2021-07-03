@@ -17,7 +17,7 @@ SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 TOURNAMENT_SPREADSHEET_ID = '11Esv5ezkFE92Ymak0ece5mPrP7pK4AWUEzzx1EwTKDM'
 SIGNUP_SPREADSHEET_ID = '1hIXQZldciTIceMhnTTlBpkohDCY3z3O6gVPZPvoXq58'
 STARTING_CELL = 'A5'
-MISSING_LIST_CELL = 'H5'
+MISSING_LIST_CELL = 'I5'
 STARTING_ROW = STARTING_CELL[1:]
 TIME_CELL = 'A2'
 STATS_CELL = 'E2'
@@ -231,13 +231,16 @@ class Matchmaker():
         self.clear_all()
         self.pair_list.sort(reverse=True, key=self._sort)
         values = []
+        n = 1
         for p in self.pair_list:
             v = []
+            v.append(n)
             self.append_player_info(v, p['female_player'])
             self.append_player_info(v, p['male_player'])
             v.append(p['pair_points'])
             v.append(p['auto_pair'])
             values.append(v)
+            n += 1
         self.update(self.get_cell_string(STARTING_CELL), values)
         self.update_missing_list()
 
