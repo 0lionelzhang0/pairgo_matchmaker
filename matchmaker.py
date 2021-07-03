@@ -20,7 +20,7 @@ STARTING_CELL = 'A5'
 MISSING_LIST_CELL = 'I5'
 STARTING_ROW = STARTING_CELL[1:]
 TIME_CELL = 'A2'
-STATS_CELL = 'E2'
+STATS_CELL = 'F2'
 
 class Matchmaker():
     def __init__(self):
