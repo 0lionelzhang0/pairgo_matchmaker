@@ -54,11 +54,12 @@ class Matchmaker():
                             self.attendee_list.pop(ind)
                             self.username_list.pop(ind)
                             self.attendee_unique_string_list.pop(ind)
+                            self.attendee_aga_id_list.pop(ind)
                         attendee['rank_short'] = attendee['rank'][:-4] + attendee['rank'][-3]
                         attendee['rank_val'] = self.get_rank_val(attendee['rank_short'])
                         attendee['signed_up'] = False
                         attendee['paired'] = False
-                        self.debug_list.append(attendee['given_name'])
+
                         self.attendee_list.append(attendee)
                         self.username_list.append(username_igs)
                         self.attendee_unique_string_list.append(self.get_unique_string(attendee, 'attendee'))
