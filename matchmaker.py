@@ -184,53 +184,9 @@ class Matchmaker():
         pair['female_player'] = p_2 if order else p_1
         pair['auto_pair'] = 'Y' if auto_pair else 'N'
         pair['pair_points'] = self.get_pair_points(pair)
-
-        if pair['female_player']['gender'] == 'm' and pair['pair_points'] > 4:
-            return False
-
         self.pair_list.append(pair)
         p_1['paired'] = True
         p_2['paired'] = True
-        if auto_pair:
-            self.auto_pair_remaining -= 2
-        return True
-
-    def auto_match_pairs(self):
-        # sum = 0
-        # for p in self.attendee_list:
-        #     if p['signed_up'] and not p['paired']:
-        #         sum += 1
-        # print(sum)
-
-        auto_pair_list = []
-        for p in self.attendee_list:
-            if p['signed_up'] and not p['paired'] and not p['signup']['has_partner']:
-                auto_pair_list.append(p)
-                print(p['username_igs'] + ":" + p['rank_short'] + ':' + p['gender'] + ' ' + p['signup']['min_pref'] + ' to ' + p['signup']['max_pref'])
-        auto_pair_list.sort(reverse=True, key=lambda p:p['rank_val'])
-
-        n = 0
-        self.auto_pair_remaining = self.auto_pair_needed
-        while(self.auto_pair_remaining > 1 and n < 4):
-            for p_1 in auto_pair_list:
-                if not p_1['paired']:
-                    # Non-male + male pairs
-                    if p_1['gender'] != 'm':
-                        for p_2 in auto_pair_list:
-                            if p_2['gender'] == 'm' and not p_2['paired'] and p_2['username_igs'] != p_1['username_igs']:
-                                if self.is_compatible_pair(p_1, p_2, n):
-                                    if self.add_pair_to_list(p_1, p_2, True):
-                                        break
-                    # Male + male pairs
-                    else:
-                        for p_2 in auto_pair_list:
-                            if p_2['gender'] == 'm' and not p_2['paired'] and p_2['username_igs'] != p_1['username_igs']:
-                                if self.is_compatible_pair(p_1, p_2, n):
-                                    if self.add_pair_to_list(p_1, p_2, True):
-                                        break
-
-            n += 1
-            # print(self.auto_pair_remaining, n)
 
     def match_remaining_players(self, list):
         num_matches_list = []
@@ -238,15 +194,15 @@ class Matchmaker():
         for p_1 in list:
             pass
 
-    def auto_match_pairs_test(self):
+    def auto_match_pairs(self):
         t = time.time()
         n = 1
+        # Calculate number of matches per player
         auto_pair_list = []
         for p in self.attendee_list:
             if p['signed_up'] and not p['paired'] and not p['signup']['has_partner']:
                 auto_pair_list.append(p)
         auto_pair_list.sort(key=lambda p: (p['gender'], -p['rank_val']))
-
         for p_1 in auto_pair_list:
             p_1['num_matches'] = 0
             p_1['matches'] = []
@@ -255,9 +211,33 @@ class Matchmaker():
                     if self.is_compatible_pair(p_1, p_2, n):
                         p_1['num_matches'] += 1
                         p_1['matches'].append(p_2)
+        for p in auto_pair_list[:]:
+            if p['num_matches'] == 0 or p['paired']:
+                auto_pair_list.remove(p)
 
-        for p in auto_pair_list:
-            print(p['username_igs'] + ":" + p['rank_short'] + ':' + p['gender'] + ' ' + p['signup']['min_pref'] + ' to ' + p['signup']['max_pref'] + ' matches:' + str(p['num_matches']))
+        # for p in auto_pair_list:
+        #     print(p['username_igs'] + ":" + p['rank_short'] + ':' + p['gender'] + ' ' + p['signup']['min_pref'] + ' to ' + p['signup']['max_pref'] + ' matches:' + str(p['num_matches']))
+        #     try:
+        #         for m in p['matches']:
+        #             print(m['username_igs'])
+        #     except:
+        #         pass
+        #     print('')
+
+        # Iteratively pair up players
+        while auto_pair_list:
+            auto_pair_list.sort(key=lambda p: p['num_matches'])
+            p = auto_pair_list[0]
+            self.add_pair_to_list(p, p['matches'][0], True)
+            for i in p['matches']:
+                i['num_matches'] -= 1
+                for j in i['matches'][:]:
+                    if j['username_igs'] == p['username_igs']:
+                        i['matches'].remove(j)
+                        break
+            for p in auto_pair_list[:]:
+                if p['num_matches'] == 0 or p['paired']:
+                    auto_pair_list.remove(p)
 
         elapsed = time.time() - t
         print('Time elapsed: ', str(elapsed))
@@ -419,6 +399,5 @@ class Matchmaker():
 if __name__ == '__main__':
     m = Matchmaker()
     m.match_premade_pairs()
-    # m.auto_match_pairs()
-    m.auto_match_pairs_test()
-    # m.update_player_sheet()
+    m.auto_match_pairs()
+    m.update_player_sheet()
