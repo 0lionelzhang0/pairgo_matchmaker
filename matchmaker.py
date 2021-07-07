@@ -1,6 +1,7 @@
 from __future__ import print_function
 from enum import auto, unique
 import os.path
+from re import T
 from typing import Match
 from fuzzywuzzy.fuzz import ratio
 from googleapiclient.discovery import build
@@ -11,6 +12,7 @@ from google.oauth2.credentials import Credentials
 from datetime import datetime
 from fuzzywuzzy import process
 import csv
+import time
 
 # If modifying these scopes, delete the file token.json.
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
@@ -176,9 +178,6 @@ class Matchmaker():
                         self.partner_not_registered += 1
                         
     def add_pair_to_list(self, p_1, p_2, auto_pair):
-
-
-        
         pair = {}
         order = (p_1['gender'] == 'm')
         pair['male_player'] = p_1 if order else p_2
@@ -219,19 +218,49 @@ class Matchmaker():
                     if p_1['gender'] != 'm':
                         for p_2 in auto_pair_list:
                             if p_2['gender'] == 'm' and not p_2['paired'] and p_2['username_igs'] != p_1['username_igs']:
-                                if self.fit_pref_ranges(p_1, p_2, n):
+                                if self.is_compatible_pair(p_1, p_2, n):
                                     if self.add_pair_to_list(p_1, p_2, True):
                                         break
                     # Male + male pairs
                     else:
                         for p_2 in auto_pair_list:
                             if p_2['gender'] == 'm' and not p_2['paired'] and p_2['username_igs'] != p_1['username_igs']:
-                                if self.fit_pref_ranges(p_1, p_2, n):
+                                if self.is_compatible_pair(p_1, p_2, n):
                                     if self.add_pair_to_list(p_1, p_2, True):
                                         break
 
             n += 1
             # print(self.auto_pair_remaining, n)
+
+    def match_remaining_players(self, list):
+        num_matches_list = []
+        n = 1
+        for p_1 in list:
+            pass
+
+    def auto_match_pairs_test(self):
+        t = time.time()
+        n = 1
+        auto_pair_list = []
+        for p in self.attendee_list:
+            if p['signed_up'] and not p['paired'] and not p['signup']['has_partner']:
+                auto_pair_list.append(p)
+        auto_pair_list.sort(key=lambda p: (p['gender'], -p['rank_val']))
+
+        for p_1 in auto_pair_list:
+            p_1['num_matches'] = 0
+            p_1['matches'] = []
+            for p_2 in auto_pair_list:
+                if p_2['username_igs'] != p_1['username_igs']:
+                    if self.is_compatible_pair(p_1, p_2, n):
+                        p_1['num_matches'] += 1
+                        p_1['matches'].append(p_2)
+
+        for p in auto_pair_list:
+            print(p['username_igs'] + ":" + p['rank_short'] + ':' + p['gender'] + ' ' + p['signup']['min_pref'] + ' to ' + p['signup']['max_pref'] + ' matches:' + str(p['num_matches']))
+
+        elapsed = time.time() - t
+        print('Time elapsed: ', str(elapsed))
 
     def update_player_sheet(self):
         # self.update_time()
@@ -260,11 +289,15 @@ class Matchmaker():
         # print(pref_range)
         return pref_range
 
-    def fit_pref_ranges(self, p_1, p_2, n):
-        if p_2['rank_val'] in self.get_pref_range_val(p_1, n):
-            if p_1['rank_val'] in self.get_pref_range_val(p_2, n):
-                return True
-        return False
+    def is_compatible_pair(self, p_1, p_2, n):
+        if p_2['rank_val'] not in self.get_pref_range_val(p_1, n):
+            return False
+        if p_1['rank_val'] not in self.get_pref_range_val(p_2, n):
+            return False
+        if self.get_pair_points({'male_player':p_1, 'female_player':p_2}) >= 4 and p_1['gender'] == 'm' and p_2['gender'] == 'm':
+            return False
+
+        return True
 
     def append_player_info(self, values, player):
         # if not player['anonymous']:
@@ -386,5 +419,6 @@ class Matchmaker():
 if __name__ == '__main__':
     m = Matchmaker()
     m.match_premade_pairs()
-    m.auto_match_pairs()
-    m.update_player_sheet()
+    # m.auto_match_pairs()
+    m.auto_match_pairs_test()
+    # m.update_player_sheet()
