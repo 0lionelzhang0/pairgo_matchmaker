@@ -67,7 +67,6 @@ class Matchmaker():
                     else:
                         self.not_registered_for_pair_go.append(attendee['email'])
         print('Number of registered attendees: ', len(self.username_list))
-        print(self.attendee_aga_id_list)
         # Parse sign-ups
         self.signup_list = []
         self.signup_unique_string_list = []
@@ -123,12 +122,12 @@ class Matchmaker():
                 self.registered_but_not_signed_up.append(p['email'])
 
         print('Number of registered and signed up people needing auto pair: ', self.auto_pair_needed, '\n')
-        print('Signed up but not registered: ', len(self.signed_up_but_not_registered))
-        self.display_emails(self.signed_up_but_not_registered)
-        print('Registered but not signed up: ', len(self.registered_but_not_signed_up))
-        self.display_emails(self.registered_but_not_signed_up)
-        print('Not registered for pair go: ', len(self.not_registered_for_pair_go))
-        self.display_emails(self.not_registered_for_pair_go)
+        # print('Signed up but not registered: ', len(self.signed_up_but_not_registered))
+        # self.display_emails(self.signed_up_but_not_registered)
+        # print('Registered but not signed up: ', len(self.registered_but_not_signed_up))
+        # self.display_emails(self.registered_but_not_signed_up)
+        # print('Not registered for pair go: ', len(self.not_registered_for_pair_go))
+        # self.display_emails(self.not_registered_for_pair_go)
 
         # print(self.debug_list)
     def display_emails(self, emails):
@@ -177,30 +176,38 @@ class Matchmaker():
                         self.partner_not_registered += 1
                         
     def add_pair_to_list(self, p_1, p_2, auto_pair):
-        p_1['paired'] = True
-        p_2['paired'] = True
+
+
+        
         pair = {}
         order = (p_1['gender'] == 'm')
         pair['male_player'] = p_1 if order else p_2
         pair['female_player'] = p_2 if order else p_1
         pair['auto_pair'] = 'Y' if auto_pair else 'N'
         pair['pair_points'] = self.get_pair_points(pair)
+
+        if pair['female_player']['gender'] == 'm' and pair['pair_points'] > 4:
+            return False
+
         self.pair_list.append(pair)
+        p_1['paired'] = True
+        p_2['paired'] = True
         if auto_pair:
             self.auto_pair_remaining -= 2
+        return True
 
     def auto_match_pairs(self):
-        sum = 0
-        for p in self.attendee_list:
-            if p['signed_up'] and not p['paired']:
-                sum += 1
-        print(sum)
+        # sum = 0
+        # for p in self.attendee_list:
+        #     if p['signed_up'] and not p['paired']:
+        #         sum += 1
+        # print(sum)
 
         auto_pair_list = []
         for p in self.attendee_list:
             if p['signed_up'] and not p['paired'] and not p['signup']['has_partner']:
                 auto_pair_list.append(p)
-                # print(p['username_igs'] + ":" + p['rank_short'] + ':' + p['gender'] + ' ' + p['signup']['min_pref'] + ' to ' + p['signup']['max_pref'])
+                print(p['username_igs'] + ":" + p['rank_short'] + ':' + p['gender'] + ' ' + p['signup']['min_pref'] + ' to ' + p['signup']['max_pref'])
         auto_pair_list.sort(reverse=True, key=lambda p:p['rank_val'])
 
         n = 0
@@ -213,15 +220,15 @@ class Matchmaker():
                         for p_2 in auto_pair_list:
                             if p_2['gender'] == 'm' and not p_2['paired'] and p_2['username_igs'] != p_1['username_igs']:
                                 if self.fit_pref_ranges(p_1, p_2, n):
-                                    self.add_pair_to_list(p_1, p_2, True)
-                                    break
+                                    if self.add_pair_to_list(p_1, p_2, True):
+                                        break
                     # Male + male pairs
                     else:
                         for p_2 in auto_pair_list:
                             if p_2['gender'] == 'm' and not p_2['paired'] and p_2['username_igs'] != p_1['username_igs']:
                                 if self.fit_pref_ranges(p_1, p_2, n):
-                                    self.add_pair_to_list(p_1, p_2, True)
-                                    break
+                                    if self.add_pair_to_list(p_1, p_2, True):
+                                        break
 
             n += 1
             # print(self.auto_pair_remaining, n)
@@ -260,14 +267,14 @@ class Matchmaker():
         return False
 
     def append_player_info(self, values, player):
-        if not player['anonymous']:
+        # if not player['anonymous']:
             # values.append(player['given_name'])
             # values.append(player['family_name'])
-            values.append(player['username_igs'])
-        else:
-            # values.append('Anonymous')
-            # values.append('Anonymous')
-            values.append('Anonymous')
+        values.append(player['username_igs'])
+        # else:
+        #     # values.append('Anonymous')
+        #     # values.append('Anonymous')
+        #     values.append('Anonymous')
         values.append(player['rank_short'])
 
     def get_pair_points(self, pair):
