@@ -243,7 +243,6 @@ class Matchmaker():
         print('Time elapsed: ', str(elapsed))
 
     def update_player_sheet(self):
-        # self.update_time()
         self.update_stats()
         self.clear_all()
         self.pair_list.sort(reverse=True, key=self._sort)
@@ -261,7 +260,6 @@ class Matchmaker():
         self.update(self.get_cell_string(STARTING_CELL), values)
         self.update_missing_list()
 
-
     #------ Utility functions ------
 
     def get_pref_range_val(self, p, n):
@@ -276,18 +274,10 @@ class Matchmaker():
             return False
         if self.get_pair_points({'male_player':p_1, 'female_player':p_2}) >= 4 and p_1['gender'] == 'm' and p_2['gender'] == 'm':
             return False
-
         return True
 
     def append_player_info(self, values, player):
-        # if not player['anonymous']:
-            # values.append(player['given_name'])
-            # values.append(player['family_name'])
         values.append(player['username_igs'])
-        # else:
-        #     # values.append('Anonymous')
-        #     # values.append('Anonymous')
-        #     values.append('Anonymous')
         values.append(player['rank_short'])
 
     def get_pair_points(self, pair):
