@@ -131,7 +131,6 @@ class Matchmaker():
         # print('Not registered for pair go: ', len(self.not_registered_for_pair_go))
         # self.display_emails(self.not_registered_for_pair_go)
 
-        # print(self.debug_list)
     def display_emails(self, emails):
         str = ''
         for e in emails:
@@ -248,7 +247,6 @@ class Matchmaker():
 
     def get_pref_range_val(self, p, n):
         pref_range = list(range(self.get_rank_val(p['signup']['min_pref'])-n, self.get_rank_val(p['signup']['max_pref'])+1+n))
-        # print(pref_range)
         return pref_range
 
     def is_compatible_pair(self, p_1, p_2, n):
@@ -297,9 +295,6 @@ class Matchmaker():
         now = now.strftime('%m/%d/%Y %H:%M:%S')
         now = 'Last Updated:\n' + now + ' PDT'
         stats = 'Registered: ' + str(len(self.username_list)) + '\n'
-        # stats += 'Registered but hasn\'t filled form: ' + str(len(self.registered_but_not_signed_up)) + '\n'
-        # stats += 'Filled form but hasn\'t registered: ' + str(len(self.signed_up_but_not_registered)) + '\n'
-        # stats += 'Partner hasn\'t registered: ' + str(self.partner_not_registered) + '\n'
         stats += 'Looking for a partner: ' + str(self.auto_pair_needed) + '\n'
         stats += '\n'
         stats += now
