@@ -21,7 +21,6 @@ SIGNUP_SPREADSHEET_ID = '1hIXQZldciTIceMhnTTlBpkohDCY3z3O6gVPZPvoXq58'
 STARTING_CELL = 'A5'
 MISSING_LIST_CELL = 'I5'
 STARTING_ROW = STARTING_CELL[1:]
-TIME_CELL = 'A2'
 STATS_CELL = 'F2'
 
 class Matchmaker():
@@ -69,6 +68,7 @@ class Matchmaker():
                     else:
                         self.not_registered_for_pair_go.append(attendee['email'])
         print('Number of registered attendees: ', len(self.username_list))
+
         # Parse sign-ups
         self.signup_list = []
         self.signup_unique_string_list = []
@@ -126,8 +126,8 @@ class Matchmaker():
         print('Number of registered and signed up people needing auto pair: ', self.auto_pair_needed, '\n')
         print('Signed up but not registered: ', len(self.signed_up_but_not_registered))
         self.display_emails(self.signed_up_but_not_registered)
-        # print('Registered but not signed up: ', len(self.registered_but_not_signed_up))
-        # self.display_emails(self.registered_but_not_signed_up)
+        print('Registered but not signed up: ', len(self.registered_but_not_signed_up))
+        self.display_emails(self.registered_but_not_signed_up)
         # print('Not registered for pair go: ', len(self.not_registered_for_pair_go))
         # self.display_emails(self.not_registered_for_pair_go)
 
@@ -283,12 +283,6 @@ class Matchmaker():
         elif case == 'attendee':
             str = d['given_name'].lower() + ' ' + d['family_name'].lower()# + ' ' + d['aga_id']
         return str
-
-    def update_time(self):
-        now = datetime.now()
-        now = now.strftime('%m/%d/%Y %H:%M:%S')
-        now = 'Last Updated\n\n' + now + ' PDT'
-        self.update(self.get_cell_string(TIME_CELL), [[now]])
 
     def update_stats(self):
         now = datetime.now()
