@@ -193,20 +193,29 @@ class Matchmaker():
         for p in auto_pair_list[:]:
             if p['num_matches'] == 0 or p['paired']:
                 auto_pair_list.remove(p)
-
-        #  print(p['username_igs'] + ":" + p['rank_short'] + ':' + p['gender'] + ' ' + p['signup']['min_pref'] + ' to ' + p['signup']['max_pref'] + ' matches:' + str(p['num_matches']))
-
+        for p in auto_pair_list:
+            rank_val = p['rank_val']
+            p['matches'].sort(key=lambda i: (abs(i['rank_val']-rank_val)))
+        
         # Iteratively pair up players
         while auto_pair_list:
             auto_pair_list.sort(key=lambda p: p['num_matches'])
+            for p in auto_pair_list:
+                print(p['username_igs'] + ":" + p['rank_short'] + ':' + p['gender'] + ' ' + p['signup']['min_pref'] + ' to ' + p['signup']['max_pref'] + ' matches:' + str(p['num_matches']))
+                for i in p['matches']:
+                    print(i['username_igs'])
             p = auto_pair_list[0]
-            self.add_pair_to_list(p, p['matches'][0], True)
-            for i in p['matches']:
-                i['num_matches'] -= 1
-                for j in i['matches'][:]:
-                    if j['username_igs'] == p['username_igs']:
-                        i['matches'].remove(j)
-                        break
+            p_2 = p['matches'][0]
+            self.add_pair_to_list(p, p_2, True)
+            for k in [p, p_2]:
+                matches = k['matches']
+                for i in matches:
+                    i['num_matches'] -= 1
+                    for j in i['matches'][:]:
+                        if j['username_igs'] == k['username_igs']:
+                            i['matches'].remove(j)
+                            break
+
             for p in auto_pair_list[:]:
                 if p['num_matches'] == 0 or p['paired']:
                     auto_pair_list.remove(p)
