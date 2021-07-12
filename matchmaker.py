@@ -1,6 +1,6 @@
 from __future__ import print_function
 from enum import auto, unique
-import os.path
+import os
 from re import T
 from typing import Match
 from fuzzywuzzy.fuzz import ratio
@@ -154,11 +154,11 @@ class Matchmaker():
         # If there are no (valid) credentials available, let the user log in.
         if not creds or not creds.valid:
             if creds and creds.expired and creds.refresh_token:
-                creds.refresh(Request())
-            else:
-                flow = InstalledAppFlow.from_client_secrets_file(
-                    'credentials.json', SCOPES)
-                creds = flow.run_local_server(port=0)
+                os.remove('token.json')
+                # creds.refresh(Request())
+            flow = InstalledAppFlow.from_client_secrets_file(
+                'credentials.json', SCOPES)
+            creds = flow.run_local_server(port=0)
             # Save the credentials for the next run
             with open('token.json', 'w') as token:
                 token.write(creds.to_json())
