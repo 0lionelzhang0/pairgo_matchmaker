@@ -174,7 +174,7 @@ class Matchmaker():
                 token.write(creds.to_json())
 
         service = build('sheets', 'v4', credentials=creds)
-        self.sheet = service.spreadsheets().values()
+        self.sheet = service.spreadsheets()
 
     def match_premade_pairs(self):
         for p_1 in self.attendee_list:
@@ -239,6 +239,20 @@ class Matchmaker():
 
         elapsed = time.time() - t
         print('Time elapsed: ', str(elapsed))
+
+    def update_checkin_status(self):
+        requests = []
+        for row in range(4,421):
+            for col in [1,3]:
+                ranges = {
+                    'sheetId': 1995723187, #200277502 is testing, 1995723187 is player sheet
+                    'startRowIndex': row,
+                    'endRowIndex': row+1,
+                    'startColumnIndex': col,
+                    'endColumnIndex': col+1,
+                }
+                requests = self.add_conditional_format(requests, ranges, True)
+        self.update_format([requests])
 
     def update_player_sheet(self):
         self.update_stats()
@@ -366,29 +380,74 @@ class Matchmaker():
         body = {
             'ranges': [ranges]
         }
-        resp = self.sheet.batchClear(spreadsheetId=spreadsheet_id, body=body).execute()
+        resp = self.sheet.values().batchClear(spreadsheetId=spreadsheet_id, body=body).execute()
         return resp
 
     def append(self, values, range='A1:J1', value_input_option='RAW', insert_data_option='OVERWRITE', spreadsheet_id=TOURNAMENT_SPREADSHEET_ID):
         body = {
             'values': values
         }
-        resp = self.sheet.append(spreadsheetId=spreadsheet_id, range=range, valueInputOption=value_input_option, insertDataOption=insert_data_option, body=body).execute()
+        resp = self.sheet.values().append(spreadsheetId=spreadsheet_id, range=range, valueInputOption=value_input_option, insertDataOption=insert_data_option, body=body).execute()
         return resp
 
     def update(self, range, values, value_input_option='RAW', spreadsheet_id=TOURNAMENT_SPREADSHEET_ID):
         body = {
             'values': values
         }
-        resp = self.sheet.update(spreadsheetId=spreadsheet_id, range=range, body=body, valueInputOption=value_input_option).execute()
+        resp = self.sheet.values().update(spreadsheetId=spreadsheet_id, range=range, body=body, valueInputOption=value_input_option).execute()
         return resp
 
     def get(self, range, spreadsheet_id=SIGNUP_SPREADSHEET_ID):
-        resp = self.sheet.get(spreadsheetId=spreadsheet_id, range=range).execute()
+        resp = self.sheet.values().get(spreadsheetId=spreadsheet_id, range=range).execute()
         return resp
+
+    def add_conditional_format(self, requests, _range, is_checked_in):
+        if not is_checked_in:
+            return requests
+
+        col = chr(_range['startColumnIndex'] + 65)
+        row = str(_range['startRowIndex'] + 1)
+        cell = col + row
+
+        formula = '=match(' + cell + ',indirect("Check-in Responses!B:B"),0)'
+
+        rule = {'addConditionalFormatRule': {
+                'rule': {
+                    'ranges': [_range],
+                    'booleanRule': {
+                        'condition': {
+                            'type': 'CUSTOM_FORMULA',
+                            'values': [{
+                                'userEnteredValue':
+                                    formula
+                            }]
+                        },
+                        'format': {
+                            'backgroundColor': {
+                                'red': 0.85,
+                                'green': 0.917647,
+                                'blue': 0.82745
+                            }
+                        }
+                    }
+                },
+                'index': 0
+            }
+        }
+        requests.append(rule)
+        return requests
+
+
+    def update_format(self, requests, spreadsheet_id=TOURNAMENT_SPREADSHEET_ID):
+        body = {
+            'requests': requests
+        }
+        response = self.sheet.batchUpdate(spreadsheetId=spreadsheet_id, body=body).execute()
+
 
 if __name__ == '__main__':
     m = Matchmaker()
     m.match_premade_pairs()
     m.auto_match_pairs()
+    # m.update_checkin_status()
     m.update_player_sheet()
