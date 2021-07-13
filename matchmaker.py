@@ -79,18 +79,22 @@ class Matchmaker():
         self.auto_pair_needed = 0
         resp = self.get(self.get_cell_string('2','420',sheet=''))
         for row in resp['values']:
-            d = {}
-            d['email'] = row[1]
-            d['has_partner'] = True if row[2] == 'Yes' else False
-            d['first_name'] = row[3].rstrip()
-            d['last_name'] = row[4].rstrip()
-            d['aga_id'] = row[5]
-            d['min_pref'] = row[6]
-            d['max_pref'] = row[7]
-            d['partner_name'] = row[8] if d['has_partner'] else '' 
-            d['partner_username'] = row[9] if d['has_partner'] else ''
-            if not d['has_partner']:
-                self.looking_for_partner += 1
+            try:
+                d = {}
+                d['email'] = row[1]
+                d['has_partner'] = True if row[2] == 'Yes' else False
+                d['first_name'] = row[3].rstrip()
+                d['last_name'] = row[4].rstrip()
+                d['aga_id'] = row[5]
+                d['min_pref'] = row[6]
+                d['max_pref'] = row[7]
+                d['partner_name'] = row[8] if d['has_partner'] else '' 
+                d['partner_username'] = row[9] if d['has_partner'] else ''
+                if not d['has_partner']:
+                    self.looking_for_partner += 1
+            except:
+                print('skipped: ', row[3], ' ', row[4])
+                continue
             unique_str = self.get_unique_string(d, 'signup')
             ratios = process.extract(unique_str, self.signup_unique_string_list)
             if ratios and ratios[0][1] >= 95:
@@ -154,11 +158,17 @@ class Matchmaker():
         # If there are no (valid) credentials available, let the user log in.
         if not creds or not creds.valid:
             if creds and creds.expired and creds.refresh_token:
-                os.remove('token.json')
-                # creds.refresh(Request())
-            flow = InstalledAppFlow.from_client_secrets_file(
-                'credentials.json', SCOPES)
-            creds = flow.run_local_server(port=0)
+                try:
+                    creds.refresh(Request())
+                except:
+                    os.remove('token.json')
+                    flow = InstalledAppFlow.from_client_secrets_file(
+                        'credentials.json', SCOPES)
+                    creds = flow.run_local_server(port=0)
+            else:
+                flow = InstalledAppFlow.from_client_secrets_file(
+                    'credentials.json', SCOPES)
+                creds = flow.run_local_server(port=0)
             # Save the credentials for the next run
             with open('token.json', 'w') as token:
                 token.write(creds.to_json())
@@ -180,7 +190,7 @@ class Matchmaker():
 
     def auto_match_pairs(self):
         t = time.time()
-        n = 0
+        n = 1
 
         # Calculate number of matches per player
         auto_pair_list = []
@@ -188,7 +198,10 @@ class Matchmaker():
             if p['signed_up'] and not p['paired'] and not p['signup']['has_partner']:
                 auto_pair_list.append(p)
         auto_pair_list.sort(key=lambda p: (p['gender'], -p['rank_val']))
+        n_female = 0
         for p_1 in auto_pair_list:
+            if p_1['gender'] == 'f':
+                n_female += 1
             p_1['num_matches'] = 0
             p_1['matches'] = []
             for p_2 in auto_pair_list:
@@ -198,6 +211,7 @@ class Matchmaker():
                         p_1['matches'].append(p_2)
             # Sort matches by closest rank
             p_1['matches'].sort(key=lambda i: (abs(i['rank_val']-p_1['rank_val'])))
+        print('Number of females looking for partner: ', n_female)
         for p in auto_pair_list[:]:
             if p['num_matches'] == 0 or p['paired']:
                 auto_pair_list.remove(p)
