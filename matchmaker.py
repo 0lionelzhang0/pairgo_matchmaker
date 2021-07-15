@@ -311,7 +311,7 @@ class Matchmaker():
 
     def get_rank_val(self, rank):
         if rank[-1] == 'p' or rank == 'Professional':
-            v = 10
+            v = 8
         else:
             v = int(rank[:-1])
             if rank[-1] == 'k':
