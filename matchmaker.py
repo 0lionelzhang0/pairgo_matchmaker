@@ -111,14 +111,14 @@ class Matchmaker():
             signup_ind = self.signup_unique_string_list.index(s)
             
             aga_id = self.signup_list[signup_ind]['aga_id']
-            ind = []
+            ind = None
             if aga_id in self.attendee_aga_id_list:
                 ind = self.attendee_aga_id_list.index(aga_id)
             else:
                 ratios = process.extract(s, self.attendee_unique_string_list)
                 if ratios[0][1] >= 90:
                     ind = self.attendee_unique_string_list.index(ratios[0][0])
-            if ind:
+            if not ind is None:
                 self.attendee_list[ind]['signup'] = self.signup_list[signup_ind]
                 self.attendee_list[ind]['signed_up'] = True
             else:
@@ -128,8 +128,16 @@ class Matchmaker():
             if p['signed_up']:
                 if not p['signup']['has_partner']:
                     self.auto_pair_needed += 1
-            else:
+
+    def display_all_emails(self):
+        for p in self.attendee_list:
+            if not p['signed_up'] and not p['paired']:
                 self.registered_but_not_signed_up.append(p['email'])
+
+        all_players = []
+        for p in self.attendee_list:
+            if p['paired'] or p['signed_up']:
+                all_players.append(p['email'])
 
         print('Number of registered and signed up people needing auto pair: ', self.auto_pair_needed, '\n')
         print('Signed up but not registered: ', len(self.signed_up_but_not_registered))
@@ -138,8 +146,10 @@ class Matchmaker():
         self.display_emails(self.registered_but_not_signed_up)
         # print('Not registered for pair go: ', len(self.not_registered_for_pair_go))
         # self.display_emails(self.not_registered_for_pair_go)
-        print('Not registered females: ', len(self.not_registered_females))
-        self.display_emails(self.not_registered_females)
+        # print('Not registered females: ', len(self.not_registered_females))
+        # self.display_emails(self.not_registered_females)
+        print('All paired and signed up players: ', len(all_players))
+        self.display_emails(all_players)
 
     def display_emails(self, emails):
         str = ''
@@ -190,7 +200,7 @@ class Matchmaker():
 
     def auto_match_pairs(self):
         t = time.time()
-        n = 1
+        n = 0
 
         # Calculate number of matches per player
         auto_pair_list = []
@@ -244,6 +254,8 @@ class Matchmaker():
         requests = []
         for row in range(4,421):
             for col in [1,3]:
+        # for row in [11]:
+        #     for col in [2]:
                 ranges = {
                     'sheetId': 1995723187, #200277502 is testing, 1995723187 is player sheet
                     'startRowIndex': row,
@@ -251,7 +263,7 @@ class Matchmaker():
                     'startColumnIndex': col,
                     'endColumnIndex': col+1,
                 }
-                requests = self.add_conditional_format(requests, ranges, True)
+                requests = self.add_conditional_format(requests, ranges)
         self.update_format([requests])
 
     def update_player_sheet(self):
@@ -401,40 +413,48 @@ class Matchmaker():
         resp = self.sheet.values().get(spreadsheetId=spreadsheet_id, range=range).execute()
         return resp
 
-    def add_conditional_format(self, requests, _range, is_checked_in):
-        if not is_checked_in:
-            return requests
-
+    def add_conditional_format(self, requests, _range):
         col = chr(_range['startColumnIndex'] + 65)
         row = str(_range['startRowIndex'] + 1)
         cell = col + row
 
-        formula = '=match(' + cell + ',indirect("Check-in Responses!B:B"),0)'
+        # formula = ['=exact(vlookup(' + cell + ',indirect("Check-in Responses!B:D"),2,0),"Yes")',
+        #            '=exact(vlookup(' + cell + ',indirect("Check-in Responses!B:D"),2,0),"No")']
+        formula = ['=EXACT(INDEX(indirect("Check-in Responses!B:D"), MAX(filter(ROW(indirect("Check-in Responses!B:B")), indirect("Check-in Responses!B:B")='+cell+')),2),"Yes")',
+                   '=EXACT(INDEX(indirect("Check-in Responses!B:D"), MAX(filter(ROW(indirect("Check-in Responses!B:B")), indirect("Check-in Responses!B:B")='+cell+')),2),"No")']
+        color = [{
+                    'red': 0.85,
+                    'green': 0.917647,
+                    'blue': 0.82745
+                },
+                {
+                    'red': 0.95686,
+                    'green': 0.7804,
+                    'blue': 0.7647
+                }]
 
-        rule = {'addConditionalFormatRule': {
-                'rule': {
-                    'ranges': [_range],
-                    'booleanRule': {
-                        'condition': {
-                            'type': 'CUSTOM_FORMULA',
-                            'values': [{
-                                'userEnteredValue':
-                                    formula
-                            }]
-                        },
-                        'format': {
-                            'backgroundColor': {
-                                'red': 0.85,
-                                'green': 0.917647,
-                                'blue': 0.82745
+        # formula = '=match(' + cell + ',indirect("Check-in Responses!B:B"),0)'
+        for i in range(2):
+            rule = {'addConditionalFormatRule': {
+                    'rule': {
+                        'ranges': [_range],
+                        'booleanRule': {
+                            'condition': {
+                                'type': 'CUSTOM_FORMULA',
+                                'values': [{
+                                    'userEnteredValue':
+                                        formula[i]
+                                }]
+                            },
+                            'format': {
+                                'backgroundColor': color[i]
                             }
                         }
-                    }
-                },
-                'index': 0
+                    },
+                    'index': 0
+                }
             }
-        }
-        requests.append(rule)
+            requests.append(rule)
         return requests
 
 
@@ -451,3 +471,4 @@ if __name__ == '__main__':
     m.auto_match_pairs()
     # m.update_checkin_status()
     m.update_player_sheet()
+    m.display_all_emails()
