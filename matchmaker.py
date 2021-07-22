@@ -13,6 +13,7 @@ from datetime import datetime
 from fuzzywuzzy import process
 import csv
 import time
+import copy
 
 # If modifying these scopes, delete the file token.json.
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
@@ -134,10 +135,24 @@ class Matchmaker():
             if not p['signed_up'] and not p['paired']:
                 self.registered_but_not_signed_up.append(p['email'])
 
+        resp = self.get(self.get_cell_string('2','420',sheet='Check-in Responses'), spreadsheet_id=TOURNAMENT_SPREADSHEET_ID)
+
         all_players = []
+        not_checked_in = []
+        not_checked_in_singles = []
         for p in self.attendee_list:
             if p['paired'] or p['signed_up']:
                 all_players.append(p['email'])
+                checked_in = False
+                for row in resp['values']:
+                    # print(row[1])
+                    if p['username_igs'].lower() == row[1].lower():
+                        checked_in = True
+                        break
+                if not checked_in:
+                    not_checked_in.append(p['email'])
+                    if p['signed_up'] and not p['signup']['has_partner']:
+                        not_checked_in_singles.append(p['email'])
 
         print('Number of registered and signed up people needing auto pair: ', self.auto_pair_needed, '\n')
         print('Signed up but not registered: ', len(self.signed_up_but_not_registered))
@@ -150,6 +165,11 @@ class Matchmaker():
         # self.display_emails(self.not_registered_females)
         print('All paired and signed up players: ', len(all_players))
         self.display_emails(all_players)
+        print('Not checked in: ', len(not_checked_in))
+        self.display_emails(not_checked_in)
+        print('Not checked in singles: ', len(not_checked_in_singles))
+        self.display_emails(not_checked_in_singles)
+
 
     def display_emails(self, emails):
         str = ''
