@@ -17,8 +17,8 @@ import copy
 
 # If modifying these scopes, delete the file token.json.
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
-TOURNAMENT_SPREADSHEET_ID = '11Esv5ezkFE92Ymak0ece5mPrP7pK4AWUEzzx1EwTKDM'
-SIGNUP_SPREADSHEET_ID = '1hIXQZldciTIceMhnTTlBpkohDCY3z3O6gVPZPvoXq58'
+TOURNAMENT_SPREADSHEET_ID = '1uMzzTHt10VbPc_HgWbO2K0-_BSwy17DYLxLHQ0TGnrs'
+SIGNUP_SPREADSHEET_ID = '1H8e-PwCmGM8Dxe4UQX7LxitZ2-_vj8-jNWsLv-hoapE'
 STARTING_CELL = 'A5'
 MISSING_LIST_CELL = 'I5'
 STARTING_ROW = STARTING_CELL[1:]
@@ -44,91 +44,98 @@ class Matchmaker():
         self.not_registered_for_pair_go = []
         self.not_registered_females = []
 
-        # # Parse congress registration
-        # with open('attendees.csv', encoding='utf-8') as f:
-        #     reader = csv.DictReader(f)
-        #     for attendee in reader:
-        #         username_igs = attendee['username_igs']
-        #         if not attendee['cancelled']:
-        #             if username_igs:
-        #                 # Avoid duplicates, new replaces old
-        #                 if username_igs in self.username_list:
-        #                     ind = self.username_list.index(username_igs)
-        #                     self.attendee_list.pop(ind)
-        #                     self.username_list.pop(ind)
-        #                     self.attendee_unique_string_list.pop(ind)
-        #                     self.attendee_aga_id_list.pop(ind)
-        #                 attendee['rank_short'] = attendee['rank'][:-4] + attendee['rank'][-3]
-        #                 attendee['rank_val'] = self.get_rank_val(attendee['rank_short'])
-        #                 attendee['signed_up'] = False
-        #                 attendee['paired'] = False
+        # Parse congress registration
+        with open('attendees.csv', encoding='utf-8') as f:
+            reader = csv.DictReader(f)
+            for attendee in reader:
+                
+                if not attendee['cancelled'] and attendee['rank'] != 'Non-player':
+                    # if username_igs:
+                        # Avoid duplicates, new replaces old
+                        # if username_igs in self.username_list:
+                        #     ind = self.username_list.index(username_igs)
+                        #     self.attendee_list.pop(ind)
+                        #     self.username_list.pop(ind)
+                        #     self.attendee_unique_string_list.pop(ind)
+                        #     self.attendee_aga_id_list.pop(ind)
+                    attendee['aga_id'] = attendee['aga_id'] if attendee['aga_id'] else 0
+                    attendee['rank_short'] = attendee['rank'][:-4] + attendee['rank'][-3]
+                    attendee['rank_val'] = self.get_rank_val(attendee['rank_short'])
+                    attendee['signed_up'] = False
+                    attendee['paired'] = False
 
-        #                 self.attendee_list.append(attendee)
-        #                 self.username_list.append(username_igs)
-        #                 self.attendee_unique_string_list.append(self.get_unique_string(attendee, 'attendee'))
-        #                 self.attendee_aga_id_list.append(attendee['aga_id'])
-        #             else:
-        #                 self.not_registered_for_pair_go.append(attendee['email'])
-        #                 if attendee['gender'] == 'f':
-        #                     self.not_registered_females.append(attendee['email'])
+                    self.attendee_list.append(attendee)
+                    self.attendee_unique_string_list.append(self.get_unique_string(attendee, 'attendee'))
+                    self.attendee_aga_id_list.append(attendee['aga_id'])
+                    # else:
+                    #     self.not_registered_for_pair_go.append(attendee['email'])
+                    #     if attendee['gender'] == 'f':
+                    #         self.not_registered_females.append(attendee['email'])
 
-        # print('Number of registered attendees: ', len(self.username_list))
+        print('Number of registered attendees: ', len(self.attendee_list))
 
-        # # Parse sign-ups
-        # self.signup_list = []
-        # self.signup_unique_string_list = []
-        # self.auto_pair_needed = 0
-        # resp = self.get(self.get_cell_string('2','420',sheet=''))
-        # for row in resp['values']:
-        #     try:
-        #         d = {}
-        #         d['email'] = row[1]
-        #         d['has_partner'] = True if row[2] == 'Yes' else False
-        #         d['first_name'] = row[3].rstrip()
-        #         d['last_name'] = row[4].rstrip()
-        #         d['aga_id'] = row[5]
-        #         d['min_pref'] = row[6]
-        #         d['max_pref'] = row[7]
-        #         d['partner_name'] = row[8] if d['has_partner'] else '' 
-        #         d['partner_username'] = row[9] if d['has_partner'] else ''
-        #         if not d['has_partner']:
-        #             self.looking_for_partner += 1
-        #     except:
-        #         print('skipped: ', row[3], ' ', row[4])
-        #         continue
-        #     unique_str = self.get_unique_string(d, 'signup')
-        #     ratios = process.extract(unique_str, self.signup_unique_string_list)
-        #     if ratios and ratios[0][1] >= 95:
-        #         ind = self.signup_unique_string_list.index(unique_str)
-        #         self.signup_list.pop(ind)
-        #         self.signup_unique_string_list.pop(ind)
+        # Parse sign-ups
+        self.signup_list = []
+        self.signup_unique_string_list = []
+        self.auto_pair_needed = 0
+        resp = self.get(self.get_cell_string('2','420',sheet=''))
+        print(resp)
+        for row in resp['values']:
+            try:
+                d = {}
+                d['email'] = row[1]
+                d['given_name'] = row[2].rstrip()
+                d['family_name'] = row[3].rstrip()
+                d['aga_id'] = row[4]
+                d['has_partner'] = True if row[5] == 'Yes' else False
+                if d['has_partner']:
+                    d['partner_given_name'] = row[6]
+                    d['partner_family_name'] = row[7]
+                    d['partner_aga_id'] = row[8]
+                else:
+                    d['min_pref'] = row[9]
+                    d['max_pref'] = row[10]
+                    d['waitlist'] = True if row[11] == 'Yes' else False
+                
+                if not d['has_partner']:
+                    self.looking_for_partner += 1
+            except Exception as e:
+                print('skipped: ', row[2], ' ', row[3])
+                print(e)
+                continue
+            unique_str = self.get_unique_string(d, 'attendee')
+            ratios = process.extract(unique_str, self.signup_unique_string_list)
+            if ratios and ratios[0][1] >= 95:
+                ind = self.signup_unique_string_list.index(unique_str)
+                self.signup_list.pop(ind)
+                self.signup_unique_string_list.pop(ind)
 
-        #     self.signup_list.append(d)
-        #     self.signup_unique_string_list.append(unique_str)
-        # print('Number of sign-ups: ', len(self.signup_list))
+            self.signup_list.append(d)
+            self.signup_unique_string_list.append(unique_str)
+        print('Number of sign-ups: ', len(self.signup_list))
 
-        # # Combine sign-ups with registration
-        # for s in self.signup_unique_string_list:
-        #     signup_ind = self.signup_unique_string_list.index(s)
+        # Combine sign-ups with registration
+        for s in self.signup_unique_string_list:
+            signup_ind = self.signup_unique_string_list.index(s)
             
-        #     aga_id = self.signup_list[signup_ind]['aga_id']
-        #     ind = None
-        #     if aga_id in self.attendee_aga_id_list:
-        #         ind = self.attendee_aga_id_list.index(aga_id)
-        #     else:
-        #         ratios = process.extract(s, self.attendee_unique_string_list)
-        #         if ratios[0][1] >= 90:
-        #             ind = self.attendee_unique_string_list.index(ratios[0][0])
-        #     if not ind is None:
-        #         self.attendee_list[ind]['signup'] = self.signup_list[signup_ind]
-        #         self.attendee_list[ind]['signed_up'] = True
-        #     else:
-        #         self.signed_up_but_not_registered.append(self.signup_list[signup_ind]['email'])
+            aga_id = self.signup_list[signup_ind]['aga_id']
+            ind = None
+            if aga_id and aga_id in self.attendee_aga_id_list:
+                ind = self.attendee_aga_id_list.index(aga_id)
+            else:
+                ratios = process.extract(s, self.attendee_unique_string_list)
+                if ratios[0][1] >= 90:
+                    ind = self.attendee_unique_string_list.index(ratios[0][0])
+            if not ind is None:
+                self.attendee_list[ind]['signup'] = self.signup_list[signup_ind]
+                self.attendee_list[ind]['signed_up'] = True
+            else:
+                self.signed_up_but_not_registered.append(self.signup_list[signup_ind]['email'])
 
-        # for p in self.attendee_list:
-        #     if p['signed_up']:
-        #         if not p['signup']['has_partner']:
-        #             self.auto_pair_needed += 1
+        for p in self.attendee_list:
+            if p['signed_up']:
+                if not p['signup']['has_partner']:
+                    self.auto_pair_needed += 1
 
     def debug(self):
         resp = self.get(self.get_cell_string('2','420',sheet='Check-in Responses'), spreadsheet_id=TOURNAMENT_SPREADSHEET_ID)
@@ -173,7 +180,6 @@ class Matchmaker():
         self.display_emails(not_checked_in)
         print('Not checked in singles: ', len(not_checked_in_singles))
         self.display_emails(not_checked_in_singles)
-
 
     def display_emails(self, emails):
         str = ''
@@ -355,12 +361,12 @@ class Matchmaker():
         return v
 
     def get_unique_string(self, d, case):
-        str = ''
+        string = ''
         if case == 'signup':
-            str = d['first_name'].lower() + ' ' + d['last_name'].lower()# + ' ' + d['aga_id']
+            string = d['first_name'].lower() + ' ' + d['last_name'].lower() + ' ' + str(d['aga_id'])
         elif case == 'attendee':
-            str = d['given_name'].lower() + ' ' + d['family_name'].lower()# + ' ' + d['aga_id']
-        return str
+            string = d['given_name'].lower() + ' ' + d['family_name'].lower() + ' ' + str(d['aga_id'])
+        return string
 
     def update_stats(self):
         now = datetime.now()
@@ -491,7 +497,7 @@ class Matchmaker():
 
 if __name__ == '__main__':
     m = Matchmaker()
-    m.debug()
+    # m.debug()
     # m.match_premade_pairs()
     # m.auto_match_pairs()
     # m.update_checkin_status()
