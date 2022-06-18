@@ -156,7 +156,6 @@ class Matchmaker():
                 all_players.append(p['email'])
                 checked_in = False
                 for row in resp['values']:
-                    # print(row[1])
                     if p['username_igs'].lower() == row[1].lower():
                         checked_in = True
                         break
@@ -220,11 +219,15 @@ class Matchmaker():
         for p_1 in self.attendee_list:
             if p_1['signed_up'] and not p_1['paired']:
                 if p_1['signup']['has_partner']:
-                    ratios = process.extract(p_1['signup']['partner_username'], self.username_list)
+                    partner_unique_str = self.get_unique_string(p_1['signup'], 'partner')
+                    ratios = process.extract(partner_unique_str, self.attendee_unique_string_list)
                     if ratios[0][1] >= 95:
-                        ind = self.username_list.index(ratios[0][0])
+                        ind = self.attendee_unique_string_list.index(ratios[0][0])
                         p_2 = self.attendee_list[ind]
-                        self.add_pair_to_list(p_1, p_2, False)
+                        if p_2['paired']:
+                            print(partner_unique_str, 'Already paired')
+                        else:
+                            self.add_pair_to_list(p_1, p_2, False)
                     else:
                         self.partner_not_registered += 1
 
@@ -245,7 +248,9 @@ class Matchmaker():
             p_1['num_matches'] = 0
             p_1['matches'] = []
             for p_2 in auto_pair_list:
-                if p_2['username_igs'] != p_1['username_igs']:
+                p_1_str = self.get_unique_string(p_1, 'attendee')
+                p_2_str = self.get_unique_string(p_2, 'attendee')
+                if p_1_str != p_2_str:
                     if self.is_compatible_pair(p_1, p_2, n):
                         p_1['num_matches'] += 1
                         p_1['matches'].append(p_2)
@@ -270,7 +275,9 @@ class Matchmaker():
                 for i in k['matches']:
                     i['num_matches'] -= 1
                     for j in i['matches'][:]:
-                        if j['username_igs'] == k['username_igs']:
+                        j_str = self.get_unique_string(j, 'attendee')
+                        k_str = self.get_unique_string(k, 'attendee')
+                        if j_str == k_str:
                             i['matches'].remove(j)
                             break
             for p in auto_pair_list[:]:
@@ -334,16 +341,18 @@ class Matchmaker():
     def is_compatible_pair(self, p_1, p_2, n):
         if p_1['gender'] == 'f' and p_2['gender'] == 'f':
             return False
+        if p_1['gender'] == 'm' and p_2['gender'] == 'm':
+            return False
         if p_2['rank_val'] not in self.get_pref_range_val(p_1, n):
             return False
         if p_1['rank_val'] not in self.get_pref_range_val(p_2, n):
             return False
-        if self.get_pair_points({'male_player':p_1, 'female_player':p_2}) >= 4 and p_1['gender'] == 'm' and p_2['gender'] == 'm':
-            return False
+        # if self.get_pair_points({'male_player':p_1, 'female_player':p_2}) >= 4 and p_1['gender'] == 'm' and p_2['gender'] == 'm':
+        #     return False
         return True
 
     def append_player_info(self, values, player):
-        values.append(player['username_igs'])
+        values.append(player['given_name'].title() + ' ' + player['family_name'].title())
         values.append(player['rank_short'])
 
     def get_pair_points(self, pair):
@@ -362,8 +371,8 @@ class Matchmaker():
 
     def get_unique_string(self, d, case):
         string = ''
-        if case == 'signup':
-            string = d['first_name'].lower() + ' ' + d['last_name'].lower() + ' ' + str(d['aga_id'])
+        if case == 'partner':
+            string = d['partner_given_name'].lower() + ' ' + d['partner_family_name'].lower() + ' ' + str(d['partner_aga_id'])
         elif case == 'attendee':
             string = d['given_name'].lower() + ' ' + d['family_name'].lower() + ' ' + str(d['aga_id'])
         return string
@@ -372,7 +381,7 @@ class Matchmaker():
         now = datetime.now()
         now = now.strftime('%m/%d/%Y %H:%M:%S')
         now = 'Last Updated:\n' + now + ' PDT'
-        stats = 'Registered: ' + str(len(self.username_list)) + '\n'
+        stats = 'Registered: ' + str(len(self.signup_list)) + '\n'
         stats += 'Looking for a partner: ' + str(self.auto_pair_needed) + '\n'
         stats += '\n'
         stats += now
@@ -381,20 +390,18 @@ class Matchmaker():
     def update_missing_list(self):
         missing_list = []
         for p in self.attendee_list:
-            if not p['paired']:
+            if p['signed_up'] and not p['paired']:
                 missing_list.append(p)
-        missing_list.sort(key=lambda p: p['username_igs'].lower())
+        missing_list.sort(key=lambda p: self.get_unique_string(p, 'attendee'))
         values = []
         for p in missing_list:
             v = []
-            v.append(p['username_igs'])
-            if not p['signed_up']:
-                v.append('N')
-            elif p['signup']['has_partner']:
-                v.append('Y')
+            v.append(p['given_name'] + ' ' + p['family_name'])
+            v.append(p['rank_short'])
+            
+            if p['signup']['has_partner']:
                 v.append('N')
             elif not p['signup']['has_partner']:
-                v.append('Y')
                 v.append('')
                 v.append('N')
             values.append(v)
@@ -498,8 +505,8 @@ class Matchmaker():
 if __name__ == '__main__':
     m = Matchmaker()
     # m.debug()
-    # m.match_premade_pairs()
-    # m.auto_match_pairs()
+    m.match_premade_pairs()
+    m.auto_match_pairs()
     # m.update_checkin_status()
-    # m.update_player_sheet()
+    m.update_player_sheet()
     # m.display_all_emails()
