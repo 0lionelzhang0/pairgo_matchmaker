@@ -29,7 +29,8 @@ class Matchmaker():
         self.sheet = []
         self.player_sheet = 'Player List'
         self.attendee_list = []
-        self.username_list = []
+        self.signed_up_but_not_registered_list = []
+        # self.username_list = []
         self.attendee_unique_string_list = []
         self.attendee_aga_id_list = []
         self.pair_list = []
@@ -39,7 +40,7 @@ class Matchmaker():
         self.get_credentials()
 
         # Email lists
-        self.signed_up_but_not_registered = []
+        self.signed_up_but_not_registered_emails = []
         self.registered_but_not_signed_up = []
         self.not_registered_for_pair_go = []
         self.not_registered_females = []
@@ -130,7 +131,8 @@ class Matchmaker():
                 self.attendee_list[ind]['signup'] = self.signup_list[signup_ind]
                 self.attendee_list[ind]['signed_up'] = True
             else:
-                self.signed_up_but_not_registered.append(self.signup_list[signup_ind]['email'])
+                self.signed_up_but_not_registered_emails.append(self.signup_list[signup_ind]['email'])
+                self.signed_up_but_not_registered_list.append(self.signup_list[signup_ind])
 
         for p in self.attendee_list:
             if p['signed_up']:
@@ -165,8 +167,8 @@ class Matchmaker():
                         not_checked_in_singles.append(p['email'])
 
         print('Number of registered and signed up people needing auto pair: ', self.auto_pair_needed, '\n')
-        print('Signed up but not registered: ', len(self.signed_up_but_not_registered))
-        self.display_emails(self.signed_up_but_not_registered)
+        print('Signed up but not registered: ', len(self.signed_up_but_not_registered_emails))
+        self.display_emails(self.signed_up_but_not_registered_emails)
         print('Registered but not signed up: ', len(self.registered_but_not_signed_up))
         self.display_emails(self.registered_but_not_signed_up)
         # print('Not registered for pair go: ', len(self.not_registered_for_pair_go))
@@ -335,7 +337,11 @@ class Matchmaker():
         p_2['paired'] = True
 
     def get_pref_range_val(self, p, n):
-        pref_range = list(range(self.get_rank_val(p['signup']['min_pref'])-n, self.get_rank_val(p['signup']['max_pref'])+1+n))
+        min = self.get_rank_val(p['signup']['min_pref'])
+        max = self.get_rank_val(p['signup']['max_pref'])
+        if min > max:
+            min, max = max, min
+        pref_range = list(range(min-n, max+1+n))
         return pref_range
 
     def is_compatible_pair(self, p_1, p_2, n):
@@ -393,6 +399,7 @@ class Matchmaker():
             if p['signed_up'] and not p['paired']:
                 missing_list.append(p)
         missing_list.sort(key=lambda p: self.get_unique_string(p, 'attendee'))
+
         values = []
         for p in missing_list:
             v = []
@@ -400,11 +407,21 @@ class Matchmaker():
             v.append(p['rank_short'])
             
             if p['signup']['has_partner']:
+                v.append('Y')
                 v.append('N')
             elif not p['signup']['has_partner']:
+                v.append('Y')
                 v.append('')
                 v.append('N')
             values.append(v)
+
+        for p in self.signed_up_but_not_registered_list:
+            v = []
+            v.append(p['given_name'] + ' ' + p['family_name'])
+            v.append('')
+            v.append('N')
+            values.append(v)
+
         self.update(self.get_cell_string(MISSING_LIST_CELL), values)
 
     def get_cell_string(self, a, b=None, sheet=None):
