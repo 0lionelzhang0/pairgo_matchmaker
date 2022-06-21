@@ -398,7 +398,8 @@ class Matchmaker():
         for p in self.attendee_list:
             if p['signed_up'] and not p['paired']:
                 missing_list.append(p)
-        missing_list.sort(key=lambda p: self.get_unique_string(p, 'attendee'))
+        # missing_list.sort(key=lambda p: self.get_unique_string(p, 'attendee'))
+        missing_list.sort(key=lambda p: -p['rank_val'])
 
         values = []
         for p in missing_list:
