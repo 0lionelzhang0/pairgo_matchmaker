@@ -20,6 +20,7 @@ SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 TOURNAMENT_SPREADSHEET_ID = '1uMzzTHt10VbPc_HgWbO2K0-_BSwy17DYLxLHQ0TGnrs'
 SIGNUP_SPREADSHEET_ID = '1H8e-PwCmGM8Dxe4UQX7LxitZ2-_vj8-jNWsLv-hoapE'
 STARTING_CELL = 'A5'
+MAIN_EVENT_STARTING_CELL = 'A9'
 MISSING_LIST_CELL = 'I5'
 STARTING_ROW = STARTING_CELL[1:]
 STATS_CELL = 'F2'
@@ -34,6 +35,7 @@ class Matchmaker():
         self.attendee_unique_string_list = []
         self.attendee_aga_id_list = []
         self.pair_list = []
+        self.iapgc_pair_list = []
         self.partner_not_registered = 0
         self.looking_for_partner = 0
         self.debug_list = []
@@ -64,7 +66,8 @@ class Matchmaker():
                     attendee['rank_val'] = self.get_rank_val(attendee['rank_short'])
                     attendee['signed_up'] = False
                     attendee['paired'] = False
-
+                    attendee['given_name'] = attendee['given_name'].rstrip()
+                    attendee['family_name'] = attendee['family_name'].rstrip()
                     self.attendee_list.append(attendee)
                     self.attendee_unique_string_list.append(self.get_unique_string(attendee, 'attendee'))
                     self.attendee_aga_id_list.append(attendee['aga_id'])
@@ -93,10 +96,12 @@ class Matchmaker():
                     d['partner_given_name'] = row[6]
                     d['partner_family_name'] = row[7]
                     d['partner_aga_id'] = row[8]
+                    d['iapgc'] = True if row[12] == 'Yes' and d['aga_id'] and d['partner_aga_id'] else False
                 else:
                     d['min_pref'] = row[9]
                     d['max_pref'] = row[10]
                     d['waitlist'] = True if row[11] == 'Yes' else False
+                    d['iapgc'] = False
                 
                 if not d['has_partner']:
                     self.looking_for_partner += 1
@@ -229,7 +234,7 @@ class Matchmaker():
                         if p_2['paired']:
                             print(partner_unique_str, 'Already paired')
                         else:
-                            self.add_pair_to_list(p_1, p_2, False)
+                            self.add_pair_to_list(p_1, p_2, auto_pair=False, iapgc=p_1['signup']['iapgc'])
                     else:
                         self.partner_not_registered += 1
 
@@ -308,9 +313,29 @@ class Matchmaker():
     def update_player_sheet(self):
         self.update_stats()
         self.clear_all()
+        self.iapgc_pair_list.sort(reverse=True, key=self._sort)
+        n = 1
+        n_iapgc = len(self.iapgc_pair_list)
+
+        if n_iapgc > 4:
+            for i in range(4, n_iapgc):
+                self.pair_list.append(self.iapgc_pair_list[i])
+
+        iapgc_values = []
+        for i in range(min(n_iapgc, 4)):
+            p = self.iapgc_pair_list[i]
+            v = []
+            v.append(n)
+            self.append_player_info(v, p['female_player'])
+            self.append_player_info(v, p['male_player'])
+            v.append(p['pair_points'])
+            v.append(p['auto_pair'])
+            iapgc_values.append(v)
+            n += 1
+        self.update(self.get_cell_string(STARTING_CELL), iapgc_values)
+
         self.pair_list.sort(reverse=True, key=self._sort)
         values = []
-        n = 1
         for p in self.pair_list:
             v = []
             v.append(n)
@@ -320,19 +345,22 @@ class Matchmaker():
             v.append(p['auto_pair'])
             values.append(v)
             n += 1
-        self.update(self.get_cell_string(STARTING_CELL), values)
+        self.update(self.get_cell_string(MAIN_EVENT_STARTING_CELL), values)
         self.update_missing_list()
 
     #------ Utility functions ------
 
-    def add_pair_to_list(self, p_1, p_2, auto_pair):
+    def add_pair_to_list(self, p_1, p_2, auto_pair, iapgc=False):
         pair = {}
         order = (p_1['gender'] == 'm')
         pair['male_player'] = p_1 if order else p_2
         pair['female_player'] = p_2 if order else p_1
         pair['auto_pair'] = 'Y' if auto_pair else 'N'
         pair['pair_points'] = self.get_pair_points(pair)
-        self.pair_list.append(pair)
+        if iapgc:
+            self.iapgc_pair_list.append(pair)
+        else:
+            self.pair_list.append(pair)
         p_1['paired'] = True
         p_2['paired'] = True
 
