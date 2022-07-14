@@ -83,8 +83,11 @@ class Matchmaker():
         self.signup_unique_string_list = []
         self.auto_pair_needed = 0
         resp = self.get(self.get_cell_string('2','420',sheet=''))
-        print(resp)
+        # print(resp)
         for row in resp['values']:
+            if len(row)>13:
+                print('cancelled: ', row[2], ' ', row[3])
+                continue
             try:
                 d = {}
                 d['email'] = row[1]
@@ -311,8 +314,9 @@ class Matchmaker():
         self.update_format([requests])
 
     def update_player_sheet(self):
-        self.update_stats()
         self.clear_all()
+        self.update_missing_list()
+        self.update_stats()
         self.iapgc_pair_list.sort(reverse=True, key=self._sort)
         n = 1
         n_iapgc = len(self.iapgc_pair_list)
@@ -346,7 +350,7 @@ class Matchmaker():
             values.append(v)
             n += 1
         self.update(self.get_cell_string(MAIN_EVENT_STARTING_CELL), values)
-        self.update_missing_list()
+        
 
     #------ Utility functions ------
 
@@ -415,22 +419,30 @@ class Matchmaker():
         now = datetime.now()
         now = now.strftime('%m/%d/%Y %H:%M:%S')
         now = 'Last Updated:\n' + now + ' PDT'
-        stats = 'Registered: ' + str(len(self.signup_list)) + '\n'
+        n_registered = len(self.iapgc_pair_list)*2 + len(self.pair_list)*2 + len(self.missing_list)
+
+        stats = 'Registered: ' + str(n_registered) + '\n'
         stats += 'Looking for a partner: ' + str(self.auto_pair_needed) + '\n'
         stats += '\n'
         stats += now
         self.update(self.get_cell_string(STATS_CELL), [[stats]])
 
+    def update_labels(self):
+        label1 = 'IAPGC\nQualifier'
+        self.update(self.get_cell_string('H5','H8'), [[label1]])
+        label2 = 'Main\nEvent'
+        self.update(self.get_cell_string('H9','H12'), [[label2]])
+
     def update_missing_list(self):
-        missing_list = []
+        self.missing_list = []
         for p in self.attendee_list:
             if p['signed_up'] and not p['paired']:
-                missing_list.append(p)
+                self.missing_list.append(p)
         # missing_list.sort(key=lambda p: self.get_unique_string(p, 'attendee'))
-        missing_list.sort(key=lambda p: -p['rank_val'])
+        self.missing_list.sort(key=lambda p: -p['rank_val'])
 
         values = []
-        for p in missing_list:
+        for p in self.missing_list:
             v = []
             v.append(p['given_name'] + ' ' + p['family_name'])
             v.append(p['rank_short'])
@@ -555,4 +567,5 @@ if __name__ == '__main__':
     m.auto_match_pairs()
     # m.update_checkin_status()
     m.update_player_sheet()
+    m.update_labels()
     # m.display_all_emails()
