@@ -241,15 +241,27 @@ class Matchmaker():
                     else:
                         self.partner_not_registered += 1
 
-    def auto_match_pairs(self):
+    def auto_match_pairs(self, mode='main'):
         t = time.time()
         n = 0
 
         # Calculate number of matches per player
         auto_pair_list = []
-        for p in self.attendee_list:
-            if p['signed_up'] and not p['paired'] and not p['signup']['has_partner']:
-                auto_pair_list.append(p)
+        if mode == 'main':
+            for p in self.attendee_list:
+                if p['signed_up'] and not p['paired'] and not p['signup']['has_partner']:
+                    auto_pair_list.append(p)
+            allow_m_m_pair = False
+        elif mode == 'waitlist':
+            n_waitlist_pairs_needed = 4 - (len(self.pair_list) %  4)
+            if not n_waitlist_pairs_needed:
+                return
+            for p in self.attendee_list:
+                if p['signed_up'] and not p['paired'] and not p['signup']['has_partner']:
+                    if p['signup']['waitlist']:
+                        auto_pair_list.append(p)
+            allow_m_m_pair = True
+
         auto_pair_list.sort(key=lambda p: (p['gender'], -p['rank_val']))
         n_female = 0
         for p_1 in auto_pair_list:
@@ -261,17 +273,19 @@ class Matchmaker():
                 p_1_str = self.get_unique_string(p_1, 'attendee')
                 p_2_str = self.get_unique_string(p_2, 'attendee')
                 if p_1_str != p_2_str:
-                    if self.is_compatible_pair(p_1, p_2, n):
+                    if self.is_compatible_pair(p_1, p_2, n, allow_m_m_pair):
                         p_1['num_matches'] += 1
                         p_1['matches'].append(p_2)
             # Sort matches by closest rank
             p_1['matches'].sort(key=lambda i: (abs(i['rank_val']-p_1['rank_val'])))
-        print('Number of females looking for partner: ', n_female)
+        if mode == 'main':
+            print('Number of females looking for partner: ', n_female)
         for p in auto_pair_list[:]:
             if p['num_matches'] == 0 or p['paired']:
                 auto_pair_list.remove(p)
         
         # Iteratively pair up players
+        pairs_added = 0
         while auto_pair_list:
             auto_pair_list.sort(key=lambda p: p['num_matches'])
             # for p in auto_pair_list:
@@ -281,6 +295,7 @@ class Matchmaker():
             p = auto_pair_list[0]
             p_2 = p['matches'][0]
             self.add_pair_to_list(p, p_2, True)
+            pairs_added += 1
             for k in [p, p_2]:
                 for i in k['matches']:
                     i['num_matches'] -= 1
@@ -293,9 +308,15 @@ class Matchmaker():
             for p in auto_pair_list[:]:
                 if p['num_matches'] == 0 or p['paired']:
                     auto_pair_list.remove(p)
+            if mode == 'waitlist':
+                if pairs_added == n_waitlist_pairs_needed:
+                    break
 
         elapsed = time.time() - t
         print('Time elapsed: ', str(elapsed))
+
+    def match_waitlist_pairs(self):
+        n_waitlist_pairs_needed = 4 - (len(self.pair_list) %  4)
 
     def update_checkin_status(self):
         requests = []
@@ -315,8 +336,7 @@ class Matchmaker():
 
     def update_player_sheet(self):
         self.clear_all()
-        self.update_missing_list()
-        self.update_stats()
+        
         self.iapgc_pair_list.sort(reverse=True, key=self._sort)
         n = 1
         n_iapgc = len(self.iapgc_pair_list)
@@ -338,6 +358,8 @@ class Matchmaker():
             n += 1
         self.update(self.get_cell_string(STARTING_CELL), iapgc_values)
 
+        # self.auto_match_pairs(mode='waitlist')
+
         self.pair_list.sort(reverse=True, key=self._sort)
         values = []
         for p in self.pair_list:
@@ -350,7 +372,9 @@ class Matchmaker():
             values.append(v)
             n += 1
         self.update(self.get_cell_string(MAIN_EVENT_STARTING_CELL), values)
-        
+
+        self.update_missing_list()
+        self.update_stats()
 
     #------ Utility functions ------
 
@@ -376,10 +400,10 @@ class Matchmaker():
         pref_range = list(range(min-n, max+1+n))
         return pref_range
 
-    def is_compatible_pair(self, p_1, p_2, n):
+    def is_compatible_pair(self, p_1, p_2, n, allow_m_m_pair=False):
         if p_1['gender'] == 'f' and p_2['gender'] == 'f':
             return False
-        if p_1['gender'] == 'm' and p_2['gender'] == 'm':
+        if p_1['gender'] == 'm' and p_2['gender'] == 'm' and not allow_m_m_pair:
             return False
         if p_2['rank_val'] not in self.get_pref_range_val(p_1, n):
             return False
