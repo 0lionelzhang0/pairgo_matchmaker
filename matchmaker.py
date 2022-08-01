@@ -52,7 +52,7 @@ class Matchmaker():
             reader = csv.DictReader(f)
             for attendee in reader:
                 
-                if not attendee['cancelled'] and attendee['rank'] != 'Non-player':
+                if attendee['rank'] != 'Non-player':
                     # if username_igs:
                         # Avoid duplicates, new replaces old
                         # if username_igs in self.username_list:
@@ -283,11 +283,11 @@ class Matchmaker():
         for p in auto_pair_list[:]:
             if p['num_matches'] == 0 or p['paired']:
                 auto_pair_list.remove(p)
-        
+
         # Iteratively pair up players
         pairs_added = 0
         while auto_pair_list:
-            auto_pair_list.sort(key=lambda p: p['num_matches'])
+            auto_pair_list.sort(key=lambda p: p['num_matches'] - (p['gender']=='f')*100)
             # for p in auto_pair_list:
             #     print(p['username_igs'] + ":" + p['rank_short'] + ':' + p['gender'] + ' ' + p['signup']['min_pref'] + ' to ' + p['signup']['max_pref'] + ' matches:' + str(p['num_matches']))
             #     for i in p['matches']:
@@ -468,7 +468,7 @@ class Matchmaker():
         values = []
         for p in self.missing_list:
             v = []
-            v.append(p['given_name'] + ' ' + p['family_name'])
+            v.append(p['given_name'].title() + ' ' + p['family_name'].title())
             v.append(p['rank_short'])
             
             if p['signup']['has_partner']:
