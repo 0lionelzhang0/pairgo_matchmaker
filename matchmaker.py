@@ -253,7 +253,7 @@ class Matchmaker():
                     auto_pair_list.append(p)
             allow_m_m_pair = False
         elif mode == 'waitlist':
-            n_waitlist_pairs_needed = 4 - (len(self.pair_list) %  4)
+            n_waitlist_pairs_needed = 8 - (len(self.pair_list) %  4)
             if not n_waitlist_pairs_needed:
                 return
             for p in self.attendee_list:
@@ -341,6 +341,13 @@ class Matchmaker():
         n = 1
         n_iapgc = len(self.iapgc_pair_list)
 
+        # Get IAPGC emails
+        # iapgc_emails = []
+        # for i in range(n_iapgc):
+        #     iapgc_emails.append(self.iapgc_pair_list[i]['male_player']['email'])
+        #     iapgc_emails.append(self.iapgc_pair_list[i]['female_player']['email'])
+        # self.display_emails(iapgc_emails)
+
         if n_iapgc > 4:
             for i in range(4, n_iapgc):
                 self.pair_list.append(self.iapgc_pair_list[i])
@@ -358,7 +365,7 @@ class Matchmaker():
             n += 1
         self.update(self.get_cell_string(STARTING_CELL), iapgc_values)
 
-        # self.auto_match_pairs(mode='waitlist')
+        self.auto_match_pairs(mode='waitlist')
 
         self.pair_list.sort(reverse=True, key=self._sort)
         values = []
@@ -375,6 +382,14 @@ class Matchmaker():
 
         self.update_missing_list()
         self.update_stats()
+
+        # pairgo_emails = []
+        # for i in range(len(self.pair_list)):
+        #     pairgo_emails.append(self.pair_list[i]['male_player']['email'])
+        #     pairgo_emails.append(self.pair_list[i]['female_player']['email'])
+        # for i in range(len(self.missing_list)):
+        #     pairgo_emails.append(self.missing_list[i]['email'])
+        # self.display_emails(pairgo_emails)
 
     #------ Utility functions ------
 
@@ -403,8 +418,11 @@ class Matchmaker():
     def is_compatible_pair(self, p_1, p_2, n, allow_m_m_pair=False):
         if p_1['gender'] == 'f' and p_2['gender'] == 'f':
             return False
-        if p_1['gender'] == 'm' and p_2['gender'] == 'm' and not allow_m_m_pair:
-            return False
+        if p_1['gender'] == 'm' and p_2['gender'] == 'm':
+            if not allow_m_m_pair:
+                return False
+            if self.get_pair_points({'male_player':p_1, 'female_player':p_2}) >= 2:
+                return False
         if p_2['rank_val'] not in self.get_pref_range_val(p_1, n):
             return False
         if p_1['rank_val'] not in self.get_pref_range_val(p_2, n):
