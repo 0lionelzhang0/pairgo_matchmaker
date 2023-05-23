@@ -6,3 +6,5 @@ The following three files are required for the program to run:
 - matchmaker.py
 - credentials.json
 - attendees.csv
+
+![image](https://github.com/0lionelzhang0/pairgo_matchmaker/assets/36424267/499f7dc9-6efc-4e1e-bdd9-c141e64d0995)
