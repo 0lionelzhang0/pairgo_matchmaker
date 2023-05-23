@@ -21,7 +21,7 @@ The following three files are required for the program to run:
 
 ## Downloading credentials.json
 
-You can follow the [instructions provided by Google]([url](https://developers.google.com/docs/api/quickstart/python))
+You can follow the [instructions provided by Google](https://developers.google.com/docs/api/quickstart/python)
 
 ![image](https://github.com/0lionelzhang0/pairgo_matchmaker/assets/36424267/499f7dc9-6efc-4e1e-bdd9-c141e64d0995)
 
@@ -57,7 +57,7 @@ Download JSON and rename to credentials.json
 
 ## Running the main script
 
-Make a copy of the [template files here]([url](https://drive.google.com/drive/folders/1gv6l1rI5Mci498kiZeP2z3UkYQp-BQ2j?usp=sharing))
+Make a copy of the [template files here](https://drive.google.com/drive/folders/1gv6l1rI5Mci498kiZeP2z3UkYQp-BQ2j?usp=sharing)
 
 Be sure to change the places marked with Xs to the correct information.
 
@@ -68,8 +68,8 @@ Example:
 
 ### Setting up an IDE to run Python
 
-1. Install [Visual Studio Code]([url](https://code.visualstudio.com/Download))
-2. Install [Python]([url](https://www.python.org/downloads/))
+1. Install [Visual Studio Code](https://code.visualstudio.com/Download)
+2. Install [Python](https://www.python.org/downloads/)
 3. Open the folder containing matchmaker.py in Visual Studio Code
 4. Press Ctrl+Shift+P and seach for "Python: Create Environment" -> "Venv" -> Select installed Python version
 5. Open the Terminal (View -> Terminal)
