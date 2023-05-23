@@ -19,6 +19,12 @@ The following three files are required for the program to run:
     - gender
     - rank
 
+# Running the tournament
+
+
+
+# One-time Setup Instructions
+
 ## Downloading credentials.json
 
 You can follow the [instructions provided by Google](https://developers.google.com/docs/api/quickstart/python)
