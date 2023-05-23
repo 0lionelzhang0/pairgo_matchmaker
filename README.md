@@ -21,6 +21,8 @@ The following three files are required for the program to run:
 
 ## Downloading credentials.json
 
+You can follow the [instructions provided by Google]([url](https://developers.google.com/docs/api/quickstart/python))
+
 ![image](https://github.com/0lionelzhang0/pairgo_matchmaker/assets/36424267/499f7dc9-6efc-4e1e-bdd9-c141e64d0995)
 
 Create a new project with any name (e.g. "Pair Go").
@@ -60,6 +62,16 @@ Make a copy of the [template files here]([url](https://drive.google.com/drive/fo
 Be sure to change the places marked with Xs to the correct information.
 
 Open the matchmaker.py and fill in the correct spreadsheet IDs, which can be found in the URL of the document.
-
+Example:
+![image](https://github.com/0lionelzhang0/pairgo_matchmaker/assets/36424267/7da273de-b955-4132-92f8-def947697591)
 ![image](https://github.com/0lionelzhang0/pairgo_matchmaker/assets/36424267/300945ef-d710-40ca-b710-f87895762c44)
 
+### Setting up an IDE to run Python
+
+1. Install [Visual Studio Code]([url](https://code.visualstudio.com/Download))
+2. Install [Python]([url](https://www.python.org/downloads/))
+3. Open the folder containing matchmaker.py in Visual Studio Code
+4. Press Ctrl+Shift+P and seach for "Python: Create Environment" -> "Venv" -> Select installed Python version
+5. Open the Terminal (View -> Terminal)
+6. Try running the script and install missing packages in the terminal using
+- "pip install [package_name]"
