@@ -15,12 +15,30 @@ Go to APIs & Services -> Credentials
 
 ![image](https://github.com/0lionelzhang0/pairgo_matchmaker/assets/36424267/8f6f7b33-de19-4b05-987e-1ccb84a71838)
 
+## OAuth Consent Screen
+
+Choose External for consent screen
+
+Pick a name for the app
+
+Add your email to required fields
+
+![image](https://github.com/0lionelzhang0/pairgo_matchmaker/assets/36424267/32848e9d-454b-4189-84b3-41acc8663649)
+
+Add these scopes
+
+![image](https://github.com/0lionelzhang0/pairgo_matchmaker/assets/36424267/83dd1da4-283b-452b-81f3-5d47e249ee36)
+
+Add your email as a test user
+
+## Gettings credentials.json
+
 Go to Create Credentials -> OAuth client ID
 
 ![image](https://github.com/0lionelzhang0/pairgo_matchmaker/assets/36424267/10cd5d72-cd0a-4ffe-a3be-82919ae842b4)
 
-Choose External for consent screen
+Download JSON and rename to credentials.json
 
+Go to Create Credentials -> OAuth client ID
 
-
-![image](https://github.com/0lionelzhang0/pairgo_matchmaker/assets/36424267/32848e9d-454b-4189-84b3-41acc8663649)
+![image](https://github.com/0lionelzhang0/pairgo_matchmaker/assets/36424267/10cd5d72-cd0a-4ffe-a3be-82919ae842b4)
