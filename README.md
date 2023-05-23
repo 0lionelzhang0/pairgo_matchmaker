@@ -8,14 +8,14 @@ The following three files are required for the program to run:
 - attendees.csv
 Email the Go Congress registrar for them to export the csv containing the information of all attendees.
 This csv should contain at least the following fields:
-user_email
-aga_id
-family_name
-given_name
-alternate_name
-phone
-gender
-rank
+  - user_email
+  - aga_id
+  - family_name
+  - given_name
+  - alternate_name
+  - phone
+  - gender
+  - rank
 
 ## Downloading credentials.json
 
