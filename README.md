@@ -1,6 +1,6 @@
 # Automatic Pair Go Player List Generation
 
-This Python script is used for parsing player Google Form signups, and automatically updating the Google Sheet player list. The 
+This Python script is used for parsing player Google Form signups, and automatically updating the Google Sheet player list. Note that the code and setup was originally only intended for my personal use, so the setup is not very refined. 
 
 The following three files are required for the program to run: 
 - matchmaker.py
@@ -52,3 +52,14 @@ Go to Create Credentials -> OAuth client ID
 ![image](https://github.com/0lionelzhang0/pairgo_matchmaker/assets/36424267/10cd5d72-cd0a-4ffe-a3be-82919ae842b4)
 
 Download JSON and rename to credentials.json
+
+## Running the main script
+
+Make a copy of the [template files here]([url](https://drive.google.com/drive/folders/1gv6l1rI5Mci498kiZeP2z3UkYQp-BQ2j?usp=sharing))
+
+Be sure to change the places marked with Xs to the correct information.
+
+Open the matchmaker.py and fill in the correct spreadsheet IDs, which can be found in the URL of the document.
+
+![image](https://github.com/0lionelzhang0/pairgo_matchmaker/assets/36424267/300945ef-d710-40ca-b710-f87895762c44)
+
