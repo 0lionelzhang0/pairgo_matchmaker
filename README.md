@@ -8,3 +8,19 @@ The following three files are required for the program to run:
 - attendees.csv
 
 ![image](https://github.com/0lionelzhang0/pairgo_matchmaker/assets/36424267/499f7dc9-6efc-4e1e-bdd9-c141e64d0995)
+
+Create a new project with any name (e.g. "Pair Go").
+
+Go to APIs & Services -> Credentials
+
+![image](https://github.com/0lionelzhang0/pairgo_matchmaker/assets/36424267/8f6f7b33-de19-4b05-987e-1ccb84a71838)
+
+Go to Create Credentials -> OAuth client ID
+
+![image](https://github.com/0lionelzhang0/pairgo_matchmaker/assets/36424267/10cd5d72-cd0a-4ffe-a3be-82919ae842b4)
+
+Choose External for consent screen
+
+
+
+![image](https://github.com/0lionelzhang0/pairgo_matchmaker/assets/36424267/32848e9d-454b-4189-84b3-41acc8663649)
