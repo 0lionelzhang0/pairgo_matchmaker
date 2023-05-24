@@ -1,6 +1,23 @@
-# One-time Setup Instructions
+## One-time Setup Instructions
 
-## Downloading credentials.json
+The following three files are required for the program to run: 
+- matchmaker.py
+  - This is the main Python script.
+- credentials.json
+  - This file contains your Google credentials so that the Python script can access Google Drive documents.
+  - Instructions below on how to download.
+- attendees.csv
+  - Email the Go Congress registrar for them to export the csv containing the information of all attendees. This csv should contain at least the following fields:
+    - user_email
+    - aga_id
+    - family_name
+    - given_name
+    - alternate_name
+    - phone
+    - gender
+    - rank
+
+### Downloading credentials.json
 
 You can follow the [instructions provided by Google](https://developers.google.com/docs/api/quickstart/python)
 
@@ -12,7 +29,7 @@ Go to APIs & Services -> Credentials
 
 ![image](https://github.com/0lionelzhang0/pairgo_matchmaker/assets/36424267/8f6f7b33-de19-4b05-987e-1ccb84a71838)
 
-### OAuth Consent Screen
+#### OAuth Consent Screen
 
 Choose External for consent screen
 
@@ -36,7 +53,7 @@ Go to Create Credentials -> OAuth client ID
 
 Download JSON and rename to credentials.json
 
-## Setting up Google files
+### Setting up Google files
 
 Make a copy of the [template files here](https://drive.google.com/drive/folders/1gv6l1rI5Mci498kiZeP2z3UkYQp-BQ2j?usp=sharing)
 
