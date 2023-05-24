@@ -9,22 +9,7 @@ This Python script is used for parsing player Google Form signups, and automatic
 | 3 | [Teleoperating Stretch](teleoperating_stretch.md)                               | Control Stretch with a keyboard or xbox controller |
 
 
-The following three files are required for the program to run: 
-- matchmaker.py
-  - This is the main Python script.
-- credentials.json
-  - This file contains your Google credentials so that the Python script can access Google Drive documents.
-  - Instructions below on how to download.
-- attendees.csv
-  - Email the Go Congress registrar for them to export the csv containing the information of all attendees. This csv should contain at least the following fields:
-    - user_email
-    - aga_id
-    - family_name
-    - given_name
-    - alternate_name
-    - phone
-    - gender
-    - rank
+
 
 # Running the tournament
 
