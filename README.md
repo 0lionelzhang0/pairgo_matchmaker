@@ -4,9 +4,9 @@ This Python script is used for parsing player Google Form signups, and automatic
 
 |   | Tutorial                                                                        | Description                                        |
 |---|---------------------------------------------------------------------------------|----------------------------------------------------|
-| 1 | [One-time Setup Instructions](setup_instructions.md)                            | Setup instructions running the matchmaking script. |
-| 2 | [Tournament Basics](gazebo_basics.md)                                               | Use Stretch in a simulated environment with Gazebo. |
-| 3 | [Teleoperating Stretch](teleoperating_stretch.md)                               | Control Stretch with a keyboard or xbox controller. |
+| 1 | [Tournament Basics](tournament_basics.md)                                       | Basic rules and format of the pair go tournament |
+| 2 | [One-time Setup Instructions](setup_instructions.md)                            | Setup instructions running the matchmaking script |
+| 3 | [Teleoperating Stretch](teleoperating_stretch.md)                               | Control Stretch with a keyboard or xbox controller |
 
 
 The following three files are required for the program to run: 
