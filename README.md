@@ -6,7 +6,7 @@ This Python script is used for parsing player Google Form signups, and automatic
 |---|---------------------------------------------------------------------------------|----------------------------------------------------|
 | 1 | [Tournament Basics](tournament_basics.md)                                       | Basic rules and format of the pair go tournament |
 | 2 | [One-time Setup Instructions](setup_instructions.md)                            | Setup instructions running the matchmaking script |
-| 3 | [Teleoperating Stretch](teleoperating_stretch.md)                               | Control Stretch with a keyboard or xbox controller |
+| 3 | [Running the Tournament](teleoperating_stretch.md)                               | Control Stretch with a keyboard or xbox controller |
 
 
 
@@ -18,16 +18,3 @@ Players should have the option to signup via Google Form or paper signups at the
 Once the one-time setup instructions below are completed, you may run the matchmaker.py script at any time to update the player list.
 
 The script will look for the Google Form responses documents and update the player list on the Google Sheets "Official XXXX Pair Go Tournament".
-
-
-
-
-### Setting up an IDE to run Python
-
-1. Install [Visual Studio Code](https://code.visualstudio.com/Download)
-2. Install [Python](https://www.python.org/downloads/)
-3. Open the folder containing matchmaker.py in Visual Studio Code
-4. Press Ctrl+Shift+P and seach for "Python: Create Environment" -> "Venv" -> Select installed Python version
-5. Open the Terminal (View -> Terminal)
-6. Try running the script and install missing packages in the terminal using
-- "pip install [package_name]"
