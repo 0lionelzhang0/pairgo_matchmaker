@@ -71,5 +71,8 @@ Example:
 3. Open the folder containing matchmaker.py in Visual Studio Code
 4. Press Ctrl+Shift+P and seach for "Python: Create Environment" -> "Venv" -> Select installed Python version
 5. Open the Terminal (View -> Terminal)
-6. Try running the script and install missing packages in the terminal using
-- "pip install [package_name]"
+6. Install missing packages in the terminal using
+```
+pip install fuzzywuzzy
+pip install --upgrade google-api-python-client google-auth-httplib2 google-auth-oauthlib
+```
