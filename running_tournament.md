@@ -10,7 +10,8 @@ When matchmaker.py is run, the script will look at the Google Form responses and
 
 ![image](https://github.com/0lionelzhang0/pairgo_matchmaker/assets/36424267/4376afa0-173a-419c-9e77-8871a91bb22f)
 
+### Pairings
 
-Once the one-time setup instructions below are completed, you may run the matchmaker.py script at any time to update the player list.
+The "Pairings" tab of the "Official XXXX Pair Go Tournament" spreadsheet will be autopopulated from the player list. On the day of the tournament, results will be recorded live in the small dropdowns to choose W/L. The opponents and handicaps for Round 2 will be autopopulated. Typically, players can start Round 2 as soon as their opponents are ready.
 
-The script will look for the Google Form responses documents and update the player list on the Google Sheets "Official XXXX Pair Go Tournament".
+![image](https://github.com/0lionelzhang0/pairgo_matchmaker/assets/36424267/b6069d41-75e3-468f-91aa-d97d3bd51dcd)
