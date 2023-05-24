@@ -36,7 +36,7 @@ Go to Create Credentials -> OAuth client ID
 
 Download JSON and rename to credentials.json
 
-## Running the main script
+## Setting up Google files
 
 Make a copy of the [template files here](https://drive.google.com/drive/folders/1gv6l1rI5Mci498kiZeP2z3UkYQp-BQ2j?usp=sharing)
 
