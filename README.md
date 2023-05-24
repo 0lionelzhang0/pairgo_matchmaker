@@ -2,11 +2,10 @@
 
 This Python script is used for parsing player Google Form signups, and automatically updating the Google Sheet player list. Note that the code and setup was originally only intended for my personal use, so the setup is not very refined. 
 
-
 |   | Tutorial                                                                        | Description                                        |
 |---|---------------------------------------------------------------------------------|----------------------------------------------------|
-| 1 | [Getting Started](getting_started.md)                                           | Setup instructions for ROS on Stretch. |
-| 2 | [Gazebo Basics](gazebo_basics.md)                                               | Use Stretch in a simulated environment with Gazebo. |
+| 1 | [One-time Setup Instructions](setup_instructions.md)                            | Setup instructions running the matchmaking script. |
+| 2 | [Tournament Basics](gazebo_basics.md)                                               | Use Stretch in a simulated environment with Gazebo. |
 | 3 | [Teleoperating Stretch](teleoperating_stretch.md)                               | Control Stretch with a keyboard or xbox controller. |
 
 
