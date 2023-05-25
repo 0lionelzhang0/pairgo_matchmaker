@@ -15,3 +15,5 @@ When matchmaker.py is run, the script will look at the Google Form responses and
 The "Pairings" tab of the "Official XXXX Pair Go Tournament" spreadsheet will be autopopulated from the player list. On the day of the tournament, results will be recorded live in the small dropdowns to choose W/L. The opponents and handicaps for Round 2 will be autopopulated. Typically, players can start Round 2 as soon as their opponents are ready.
 
 ![image](https://github.com/0lionelzhang0/pairgo_matchmaker/assets/36424267/b6069d41-75e3-468f-91aa-d97d3bd51dcd)
+
+### Making Changes 
