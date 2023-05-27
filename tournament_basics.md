@@ -29,7 +29,7 @@ There will most likely be more male players looking for a partner than female. I
 
 ### Handicaps
 
-No handicap for the top-seeded teams playing for the trip to Japan in the IAPGC qualifier. All other gamese in the main event are handicapped based on average team strength.
+No handicap for the top-seeded teams playing for the trip to Japan in the IAPGC qualifier. All other gamese in the main event are handicapped based on average team strength. See the official pair go rules at the top for details.
 
 ### Time Settings
 
