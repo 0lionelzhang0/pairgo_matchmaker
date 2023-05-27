@@ -18,7 +18,7 @@ The "Pairings" tab of the "Official XXXX Pair Go Tournament" spreadsheet will be
 
 ## What to do if...
 
-## a player is dropping out.
+### a player is dropping out.
 Delete their Google form response from the response spreadsheet. Rerun the script.
 
 ### there is a typo in someone's Google Form response.
