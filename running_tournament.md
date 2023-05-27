@@ -16,4 +16,16 @@ The "Pairings" tab of the "Official XXXX Pair Go Tournament" spreadsheet will be
 
 ![image](https://github.com/0lionelzhang0/pairgo_matchmaker/assets/36424267/b6069d41-75e3-468f-91aa-d97d3bd51dcd)
 
-### Making Changes 
+## What to do if...
+
+## a player is dropping out.
+Delete their Google form response from the response spreadsheet. Rerun the script.
+
+### there is a typo in someone's Google Form response.
+Edit the responses spreadsheet directly to fix the typo. Rerun the script.
+
+### you need all emails of participants.
+Uncomment the last line of matchmaker.py and rerun the script.
+```
+m.display_all_emails()
+```
