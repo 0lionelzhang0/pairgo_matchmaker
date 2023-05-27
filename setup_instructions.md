@@ -1,4 +1,4 @@
-## One-time Setup Instructions
+## One-time Setup Instructions (20-30 mins)
 
 The following three files are required for the program to run: 
 - matchmaker.py
