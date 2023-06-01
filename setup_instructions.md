@@ -7,6 +7,7 @@ The following three files are required for the program to run:
   - This file contains your Google credentials so that the Python script can access Google Drive documents.
   - Instructions below on how to download.
 - attendees.csv
+  - A sample csv file is included in the [template files link](https://drive.google.com/drive/folders/1gv6l1rI5Mci498kiZeP2z3UkYQp-BQ2j?usp=sharing) for testing.
   - Email the Go Congress registrar for them to export the csv containing the information of all attendees. This csv should contain at least the following fields:
     - user_email
     - aga_id
