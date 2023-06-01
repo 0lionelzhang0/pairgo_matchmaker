@@ -51,7 +51,8 @@ class Matchmaker():
         with open('attendees.csv', encoding='utf-8') as f:
             reader = csv.DictReader(f)
             for attendee in reader:
-                
+                if attendee['rank'] == '':
+                    continue
                 if attendee['rank'] != 'Non-player':
                     # if username_igs:
                         # Avoid duplicates, new replaces old
