@@ -70,7 +70,7 @@ Example:
 2. Install [Python](https://www.python.org/downloads/)
 3. Open the folder containing matchmaker.py in Visual Studio Code
 4. Press Ctrl+Shift+P and seach for "Python: Create Environment" -> "Venv" -> Select installed Python version
-5. Open the Terminal (View -> Terminal)
+5. Open a new Terminal (Terminal -> New Terminal Ctrl+Shift+`)
 6. Install missing packages in the terminal using
 ```
 pip install fuzzywuzzy
