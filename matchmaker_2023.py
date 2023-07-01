@@ -100,17 +100,17 @@ class Matchmaker():
                     d['partner_given_name'] = row[6]
                     d['partner_family_name'] = row[7]
                     d['partner_aga_id'] = row[8]
-                    d['iapgc'] = True if row[12] == 'Yes' and d['aga_id'] and d['partner_aga_id'] else False
+                    d['iapgc'] = True if row[9] == 'Yes' and d['aga_id'] and d['partner_aga_id'] else False
                 else:
-                    d['min_pref'] = row[9]
-                    d['max_pref'] = row[10]
-                    d['waitlist'] = True if row[11] == 'Yes' else False
+                    d['min_pref'] = row[10]
+                    d['max_pref'] = row[11]
+                    d['waitlist'] = True if row[12] == 'Yes' else False
                     d['iapgc'] = False
                 
                 if not d['has_partner']:
                     self.looking_for_partner += 1
             except Exception as e:
-                print('skipped: ', row[2], ' ', row[3])
+                print('skipped signup:', row[2], row[3])
                 print(e)
                 continue
             unique_str = self.get_unique_string(d, 'attendee')
