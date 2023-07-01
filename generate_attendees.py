@@ -1,21 +1,103 @@
 import urllib.request
-from csv import DictReader
+from csv import DictReader, writer, reader, DictWriter
 import io
 import os
 
 file_found = False
+attendees_filename = "attendees.csv"
+
+def has_numbers(inputString):
+    return any(char.isdigit() for char in inputString)
+
+def get_unique_string(p):
+    res = p['given_name'].lower()
+    res += p['family_name'].lower()
+    res += p['aga_id']
+    return res
+
+# Search for main_registrant_data file
 for filename in os.listdir('.'):
-    if filename.startswith("main_registration_data"):
+    if filename.startswith("main_registrant_data"):
         main_reg_filename = filename
         file_found = True
         break
 if not file_found:
     raise Exception("Main registration data file not found")
 
-print(main_reg_filename)
+# Create a dict where the keys are AGA IDs and the values are the rank
+tdList = {}
+with urllib.request.urlopen('https://aga-functions.azurewebsites.net/api/GenerateTDListA') as response:
+    html = response.read().decode('utf-8')
+    for row in reader(io.StringIO(html), delimiter='\t'):
+        if row[3] == '':
+            continue
+        rank_val = int(float(row[3]))
+        rank_str = str(abs(rank_val))
+        if rank_val < 0:
+            rank_str += ' kyu'
+        else:
+            rank_str += ' dan'
+        tdList[row[1]] = rank_str
+
+# Create dict of all override values for rank
+override = {}
+with open('override.csv', encoding='utf-8') as f:
+    reader = DictReader(f)
+    for attendee in reader:
+        unique_str = get_unique_string(attendee)
+        override[unique_str] = attendee['rank']
 
 
-# with urllib.request.urlopen('https://aga-functions.azurewebsites.net/api/GenerateTDListA') as response:
-#    html = response.read().decode('utf-8')
-#    tdList = DictReader(io.StringIO(html), delimiter='\t', fieldnames=['Name', 'AGAID', 'Member Type', 'Rating', 'Expiration Date', 'Chapter Code', 'State', 'Sigma', 'Join Date'])
-   
+# Create dict of all attendees to include their AGA rank
+attendees = []
+with open(main_reg_filename, encoding='utf-8') as f:
+    reader = DictReader(f)
+    for attendee in reader:
+        if attendee['Status'] == 'Cancelled':
+            continue
+        p = {}
+        p['family_name'] = attendee['Last Name']
+        p['given_name'] = attendee['First Name']
+        p['aga_id'] = attendee['Member Number']
+        try:
+            if attendee['Gender'] == 'Male':
+                p['gender'] = 'm'
+            elif attendee['Gender'] == 'Female':
+                p['gender'] = 'f'
+            else:
+                p['gender'] = 'o'
+        except:
+            print(attendee['aga_id'], ' no gender')
+
+        try: 
+            p['rank'] = override[get_unique_string(p)]
+        except:
+            try:
+                p['rank'] = tdList[p['aga_id']]
+            except:
+                tdList[p['aga_id']] = ''
+                pass
+
+        attendees.append(p)
+
+        if (attendee['Rating'] != 'Use AGA rating' and
+            has_numbers(attendee['Rating']) and 
+            attendee['Registrant Type'] != 'Non-Participant'):
+            try:
+                td_rank = tdList[p['aga_id']]
+            except:
+                td_rank = ''
+            print(attendee['First Name'] + ',' + 
+                  attendee['Last Name'] + ',' +
+                  attendee['Member Number'] + ',' +
+                  td_rank + ','+
+                  attendee['Rating'])
+
+# Write attendees dict to csv 
+if os.path.exists(attendees_filename):
+    os.remove(attendees_filename)
+with open(attendees_filename, 'w', newline='') as attendees_csv:
+    csv_columns = ['family_name', 'given_name', 'aga_id', 'gender', 'rank']
+    writer = DictWriter(attendees_csv, fieldnames=csv_columns)
+    writer.writeheader()
+    writer.writerows(attendees)
