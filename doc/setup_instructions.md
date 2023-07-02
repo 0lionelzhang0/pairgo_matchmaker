@@ -65,7 +65,7 @@ Example:
 
 ### Generating attendees.csv
 
-Once you have received the main_registrant_data.csv from the go congress registrar, you can run the generate_attendees.csv script to generate attendees.csv
+Once you have received the main_registrant_data.csv from the go congress registrar, you can run the generate_attendees.csv script to generate attendees.csv. Make sure they are in the same folder.
 
 ### Setting up an IDE to run Python
 
