@@ -1,22 +1,18 @@
 ## One-time Setup Instructions (20-30 mins)
 
-The following three files are required for the program to run: 
+The following five files are required for the program to run: 
 - matchmaker.py
   - This is the main Python script.
 - credentials.json
   - This file contains your Google credentials so that the Python script can access Google Drive documents.
   - Instructions below on how to download.
-- attendees.csv
-  - A sample csv file is included in the [template files link](https://drive.google.com/drive/folders/1gv6l1rI5Mci498kiZeP2z3UkYQp-BQ2j?usp=sharing) for testing.
-  - Email the Go Congress registrar for them to export the csv containing the information of all attendees. This csv should contain at least the following fields:
-    - user_email
-    - aga_id
-    - family_name
-    - given_name
-    - alternate_name
-    - phone
-    - gender
-    - rank
+- main_registrant_data.XXXXXX.csv
+  - Email the Go Congress registrar for them to export the csv containing the information of all congress registrants.
+- override.csv
+  - Download 2023 version from [here](https://drive.google.com/drive/folders/1f9Kag0ZQ56eDHSvFO0wmvj8SNfsbg9Ti?usp=sharing)
+  - This file contains rank information of players that will override their official AGA rating for cases of self-promotion or missing AGA rank. 
+- generate_attendees.py
+  - This script generates attendees.csv from the main_registrant_data.csv and their official AGA rank
 
 ### Downloading credentials.json
 
