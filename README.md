@@ -4,6 +4,6 @@ This Python script is used for parsing player Google Form signups, and automatic
 
 |   | Tutorial                                                                        | Description                                        |
 |---|---------------------------------------------------------------------------------|----------------------------------------------------|
-| 1 | [Tournament Basics](tournament_basics.md)                                       | Basic rules and format of the pair go tournament |
-| 2 | [One-time Setup Instructions](setup_instructions.md)                            | Setup instructions for running the matchmaking script |
-| 3 | [Running the Tournament](running_tournament.md)                                 | Instructions for running the script and tournament |
+| 1 | [Tournament Basics](doc/tournament_basics.md)                                       | Basic rules and format of the pair go tournament |
+| 2 | [One-time Setup Instructions](doc/setup_instructions.md)                            | Setup instructions for running the matchmaking script |
+| 3 | [Running the Tournament](doc/running_tournament.md)                                 | Instructions for running the script and tournament |
