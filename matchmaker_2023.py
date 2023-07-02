@@ -314,7 +314,7 @@ class Matchmaker():
                     break
 
         elapsed = time.time() - t
-        print('Time elapsed: ', str(elapsed))
+        # print('Time elapsed: ', str(elapsed))
 
     def match_waitlist_pairs(self):
         n_waitlist_pairs_needed = 4 - (len(self.pair_list) %  4)
