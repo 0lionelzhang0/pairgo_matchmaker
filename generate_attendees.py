@@ -3,7 +3,6 @@ from csv import DictReader, writer, reader, DictWriter
 import io
 import os
 
-file_found = False
 attendees_filename = "attendees.csv"
 
 def has_numbers(inputString):
@@ -16,13 +15,14 @@ def get_unique_string(p):
     return res
 
 # Search for main_registrant_data file
+registrant_filename = adhoc_filename = ''
 for filename in os.listdir('.'):
-    if filename.startswith("main_registrant_data"):
-        main_reg_filename = filename
-        file_found = True
-        break
-if not file_found:
-    raise Exception("Main registration data file not found")
+    if filename.startswith("registrant_data"):
+        registrant_filename = filename
+    if filename.startswith("congress_registrant_list"):
+        adhoc_filename = filename
+if not registrant_filename or not adhoc_filename:
+    raise Exception("Missing registrant_data file or congress_registrant_list file")
 
 # Create a dict where the keys are AGA IDs and the values are the rank
 tdList = {}
@@ -47,10 +47,17 @@ with open('override.csv', encoding='utf-8') as f:
         unique_str = get_unique_string(attendee)
         override[unique_str] = attendee['rank']
 
+# Create dict for adhoc AGA ID info
+adhoc_agaid = {}
+with open(adhoc_filename, encoding='utf-8') as f:
+    next(f)
+    reader = DictReader(f)  
+    for attendee in reader:
+        adhoc_agaid[attendee['Full Name (Reversed)']] = attendee['Member Number']
 
 # Create dict of all attendees to include their AGA rank
 attendees = []
-with open(main_reg_filename, encoding='utf-8') as f:
+with open(registrant_filename, encoding='utf-8') as f:
     reader = DictReader(f)
     for attendee in reader:
         if attendee['Status'] == 'Cancelled':
@@ -58,7 +65,8 @@ with open(main_reg_filename, encoding='utf-8') as f:
         p = {}
         p['family_name'] = attendee['Last Name']
         p['given_name'] = attendee['First Name']
-        p['aga_id'] = attendee['Member Number']
+        # p['aga_id'] = attendee['Member Number']
+        p['aga_id'] = adhoc_agaid[p['family_name']+', '+p['given_name']]
         try:
             if attendee['Gender'] == 'Male':
                 p['gender'] = 'm'
