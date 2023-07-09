@@ -14,38 +14,40 @@ def get_unique_string(p):
     res += p['aga_id']
     return res
 
+def get_rank_long(rank):
+    res = rank[:-1]
+    if rank[-1] == 'k':
+        res += ' kyu'
+    elif rank[-1] == 'd':
+        res += ' dan'
+    elif rank[-1] == 'p':
+        res += ' pro'
+    return res
+
 # Search for main_registrant_data file
-registrant_filename = adhoc_filename = ''
+registrant_filename = adhoc_filename = final_ranks_filename = ''
 for filename in os.listdir('.'):
     if filename.startswith("registrant_data"):
         registrant_filename = filename
-    if filename.startswith("congress_registrant_list"):
+    elif filename.startswith("congress_registrant_list"):
         adhoc_filename = filename
-if not registrant_filename or not adhoc_filename:
+    elif filename.endswith("registrations.csv"):
+        final_ranks_filename = filename
+
+if not registrant_filename or not adhoc_filename or not final_ranks_filename:
     raise Exception("Missing registrant_data file or congress_registrant_list file")
 
-# Create a dict where the keys are AGA IDs and the values are the rank
+# Create dict of all finalized ranks
 tdList = {}
-with urllib.request.urlopen('https://aga-functions.azurewebsites.net/api/GenerateTDListA') as response:
-    html = response.read().decode('utf-8')
-    for row in reader(io.StringIO(html), delimiter='\t'):
-        if row[3] == '':
-            continue
-        rank_val = int(float(row[3]))
-        rank_str = str(abs(rank_val))
-        if rank_val < 0:
-            rank_str += ' kyu'
-        else:
-            rank_str += ' dan'
-        tdList[row[1]] = rank_str
-
-# Create dict of all override values for rank
-override = {}
-with open('override.csv', encoding='utf-8') as f:
+with open(final_ranks_filename, encoding='utf-8') as f:
     reader = DictReader(f)
     for attendee in reader:
-        unique_str = get_unique_string(attendee)
-        override[unique_str] = attendee['rank']
+        p = {}
+        p['aga_id'] = attendee['OrganizationId']
+        p['family_name'] = attendee['FamilyName']
+        p['given_name'] = attendee['GivenName']
+        unique_str = get_unique_string(p)
+        tdList[unique_str] = get_rank_long(attendee['Rank'])
 
 # Create dict for adhoc AGA ID info
 adhoc_agaid = {}
@@ -77,29 +79,26 @@ with open(registrant_filename, encoding='utf-8') as f:
         except:
             print(attendee['aga_id'], ' no gender')
 
-        try: 
-            p['rank'] = override[get_unique_string(p)]
+        try:
+            p['rank'] = tdList[get_unique_string(p)]
         except:
-            try:
-                p['rank'] = tdList[p['aga_id']]
-            except:
-                tdList[p['aga_id']] = ''
-                pass
+            tdList[get_unique_string(p)] = ''
+            pass
 
         attendees.append(p)
 
-        if (attendee['Rating'] != 'Use AGA rating' and
-            has_numbers(attendee['Rating']) and 
-            attendee['Registrant Type'] != 'Non-Participant'):
-            try:
-                td_rank = tdList[p['aga_id']]
-            except:
-                td_rank = ''
-            print(attendee['First Name'] + ',' + 
-                  attendee['Last Name'] + ',' +
-                  attendee['Member Number'] + ',' +
-                  td_rank + ','+
-                  attendee['Rating'])
+        # if (attendee['Rating'] != 'Use AGA rating' and
+        #     has_numbers(attendee['Rating']) and 
+        #     attendee['Registrant Type'] != 'Non-Participant'):
+        #     try:
+        #         td_rank = tdList[p['aga_id']]
+        #     except:
+        #         td_rank = ''
+        #     print(attendee['First Name'] + ',' + 
+        #           attendee['Last Name'] + ',' +
+        #           attendee['Member Number'] + ',' +
+        #           td_rank + ','+
+        #           attendee['Rating'])
 
 # Write attendees dict to csv 
 if os.path.exists(attendees_filename):

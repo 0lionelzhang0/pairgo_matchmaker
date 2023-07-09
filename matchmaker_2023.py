@@ -18,8 +18,8 @@ import copy
 # If modifying these scopes, delete the file token.json.
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 TOURNAMENT_SPREADSHEET_ID = '1i4hhTV9cuhUKeX0fMqqqOVeZZnY2f2E87drwK9MIpuk'
-# SIGNUP_SPREADSHEET_ID = '1NsDCMG0jQDRf_JYYbW5zL_dqPa33-VJuzOb_KynUBCc' # live version
-SIGNUP_SPREADSHEET_ID = '1yocySlXRXasn3eiWPY7SsHOzdFrtmUCBcpj15wabQqk' # testing
+SIGNUP_SPREADSHEET_ID = '1NsDCMG0jQDRf_JYYbW5zL_dqPa33-VJuzOb_KynUBCc' # live version
+# SIGNUP_SPREADSHEET_ID = '1yocySlXRXasn3eiWPY7SsHOzdFrtmUCBcpj15wabQqk' # testing
 
 STARTING_CELL = 'A5'
 MAIN_EVENT_STARTING_CELL = 'A9'
