@@ -67,6 +67,7 @@ class Matchmaker():
                     attendee['aga_id'] = attendee['aga_id'] if attendee['aga_id'] else 0
                     attendee['rank_short'] = attendee['rank'][:-4] + attendee['rank'][-3]
                     attendee['rank_val'] = self.get_rank_val(attendee['rank_short'])
+                    attendee['email'] = attendee['email'] if attendee['email'] else ''
                     attendee['signed_up'] = False
                     attendee['paired'] = False
                     attendee['given_name'] = attendee['given_name'].rstrip()
@@ -155,11 +156,11 @@ class Matchmaker():
         print(resp)
 
     def display_all_emails(self):
-        for p in self.attendee_list:
-            if not p['signed_up'] and not p['paired']:
-                self.registered_but_not_signed_up.append(p['email'])
+        # for p in self.attendee_list:
+        #     if not p['signed_up'] and not p['paired']:
+        #         self.registered_but_not_signed_up.append(p['email'])
 
-        resp = self.get(self.get_cell_string('2','420',sheet='Check-in Responses'), spreadsheet_id=TOURNAMENT_SPREADSHEET_ID)
+        # resp = self.get(self.get_cell_string('2','420',sheet='Check-in Responses'), spreadsheet_id=TOURNAMENT_SPREADSHEET_ID)
 
         all_players = []
         not_checked_in = []
@@ -167,31 +168,31 @@ class Matchmaker():
         for p in self.attendee_list:
             if p['paired'] or p['signed_up']:
                 all_players.append(p['email'])
-                checked_in = False
-                for row in resp['values']:
-                    if p['username_igs'].lower() == row[1].lower():
-                        checked_in = True
-                        break
-                if not checked_in:
-                    not_checked_in.append(p['email'])
-                    if p['signed_up'] and not p['signup']['has_partner']:
-                        not_checked_in_singles.append(p['email'])
+                # checked_in = False
+                # for row in resp['values']:
+                #     if p['username_igs'].lower() == row[1].lower():
+                #         checked_in = True
+                #         break
+                # if not checked_in:
+                #     not_checked_in.append(p['email'])
+                #     if p['signed_up'] and not p['signup']['has_partner']:
+                #         not_checked_in_singles.append(p['email'])
 
-        print('Number of registered and signed up people needing auto pair: ', self.auto_pair_needed, '\n')
-        print('Signed up but not registered: ', len(self.signed_up_but_not_registered_emails))
-        self.display_emails(self.signed_up_but_not_registered_emails)
-        print('Registered but not signed up: ', len(self.registered_but_not_signed_up))
-        self.display_emails(self.registered_but_not_signed_up)
+        # print('Number of registered and signed up people needing auto pair: ', self.auto_pair_needed, '\n')
+        # print('Signed up but not registered: ', len(self.signed_up_but_not_registered_emails))
+        # self.display_emails(self.signed_up_but_not_registered_emails)
+        # print('Registered but not signed up: ', len(self.registered_but_not_signed_up))
+        # self.display_emails(self.registered_but_not_signed_up)
         # print('Not registered for pair go: ', len(self.not_registered_for_pair_go))
         # self.display_emails(self.not_registered_for_pair_go)
         # print('Not registered females: ', len(self.not_registered_females))
         # self.display_emails(self.not_registered_females)
         print('All paired and signed up players: ', len(all_players))
         self.display_emails(all_players)
-        print('Not checked in: ', len(not_checked_in))
-        self.display_emails(not_checked_in)
-        print('Not checked in singles: ', len(not_checked_in_singles))
-        self.display_emails(not_checked_in_singles)
+        # print('Not checked in: ', len(not_checked_in))
+        # self.display_emails(not_checked_in)
+        # print('Not checked in singles: ', len(not_checked_in_singles))
+        # self.display_emails(not_checked_in_singles)
 
     def display_emails(self, emails):
         str = ''
@@ -345,11 +346,12 @@ class Matchmaker():
         n_iapgc = len(self.iapgc_pair_list)
 
         # Get IAPGC emails
-        # iapgc_emails = []
-        # for i in range(n_iapgc):
-        #     iapgc_emails.append(self.iapgc_pair_list[i]['male_player']['email'])
-        #     iapgc_emails.append(self.iapgc_pair_list[i]['female_player']['email'])
-        # self.display_emails(iapgc_emails)
+        print('Emails of all IAPGC players: ')
+        iapgc_emails = []
+        for i in range(4):
+            iapgc_emails.append(self.iapgc_pair_list[i]['male_player']['email'])
+            iapgc_emails.append(self.iapgc_pair_list[i]['female_player']['email'])
+        self.display_emails(iapgc_emails)
 
         if n_iapgc > 4:
             for i in range(4, n_iapgc):
@@ -386,13 +388,15 @@ class Matchmaker():
         self.update_missing_list()
         self.update_stats()
 
-        # pairgo_emails = []
-        # for i in range(len(self.pair_list)):
-        #     pairgo_emails.append(self.pair_list[i]['male_player']['email'])
-        #     pairgo_emails.append(self.pair_list[i]['female_player']['email'])
-        # for i in range(len(self.missing_list)):
-        #     pairgo_emails.append(self.missing_list[i]['email'])
-        # self.display_emails(pairgo_emails)
+
+        print('Emails of all pair go players: ')
+        pairgo_emails = []
+        for i in range(len(self.pair_list)):
+            pairgo_emails.append(self.pair_list[i]['male_player']['email'])
+            pairgo_emails.append(self.pair_list[i]['female_player']['email'])
+        for i in range(len(self.missing_list)):
+            pairgo_emails.append(self.missing_list[i]['email'])
+        self.display_emails(pairgo_emails)
 
     #------ Utility functions ------
 
