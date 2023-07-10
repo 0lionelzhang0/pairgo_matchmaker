@@ -62,7 +62,9 @@ attendees = []
 with open(registrant_filename, encoding='utf-8') as f:
     reader = DictReader(f)
     for attendee in reader:
-        if attendee['Status'] == 'Cancelled':
+        if (attendee['Status'] == 'Cancelled' or 
+            attendee['Registrant Type'] == 'Non-Participant' or
+            attendee['Registrant Type'] == 'Member Guest - Non-Participant'):
             continue
         p = {}
         p['family_name'] = attendee['Last Name']
