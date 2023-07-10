@@ -39,6 +39,7 @@ if not registrant_filename or not adhoc_filename or not final_ranks_filename:
 
 # Create dict of all finalized ranks
 tdList = {}
+emailList = {}
 with open(final_ranks_filename, encoding='utf-8') as f:
     reader = DictReader(f)
     for attendee in reader:
@@ -48,6 +49,7 @@ with open(final_ranks_filename, encoding='utf-8') as f:
         p['given_name'] = attendee['GivenName']
         unique_str = get_unique_string(p)
         tdList[unique_str] = get_rank_long(attendee['Rank'])
+        emailList[unique_str] = attendee['Email']
 
 # Create dict for adhoc AGA ID info
 adhoc_agaid = {}
@@ -87,6 +89,12 @@ with open(registrant_filename, encoding='utf-8') as f:
             tdList[get_unique_string(p)] = ''
             pass
 
+        try:
+            p['email'] = emailList[get_unique_string(p)]
+        except:
+            emailList[get_unique_string(p)] = ''
+            pass
+
         attendees.append(p)
 
         # if (attendee['Rating'] != 'Use AGA rating' and
@@ -106,7 +114,7 @@ with open(registrant_filename, encoding='utf-8') as f:
 if os.path.exists(attendees_filename):
     os.remove(attendees_filename)
 with open(attendees_filename, 'w', newline='') as attendees_csv:
-    csv_columns = ['family_name', 'given_name', 'aga_id', 'gender', 'rank']
+    csv_columns = ['family_name', 'given_name', 'aga_id', 'gender', 'rank', 'email']
     writer = DictWriter(attendees_csv, fieldnames=csv_columns)
     writer.writeheader()
     writer.writerows(attendees)
