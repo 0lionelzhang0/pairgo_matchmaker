@@ -18,6 +18,9 @@ The "Pairings" tab of the "Official XXXX Pair Go Tournament" spreadsheet will be
 
 ## What to do if...
 
+### a player wants to make a change to their rank.
+Edit the override.csv file to include a line with their name and AGA ID. Add their new desired rank to the "rank" column. If their name is already in the file you can directly change the value in the "rank" column.
+
 ### a player is dropping out.
 Delete their Google form response from the response spreadsheet. Rerun the script.
 
